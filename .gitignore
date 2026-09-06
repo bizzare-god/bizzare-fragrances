@@ -29,3 +29,6 @@ Thumbs.db
 
 .vercel
 .env*
+
+# supabase local temp files
+supabase/.temp/
