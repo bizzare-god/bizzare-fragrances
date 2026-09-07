@@ -286,9 +286,9 @@ function StorefrontContent() {
             </div>
           </div>
 
-          {/* Scent Family Category Filter Chips */}
-          <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-cream-border/60">
-            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-brown-deep/50 mr-1">
+          {/* Scent Family Category Filter Chips (Touch-scrollable on mobile/tablet) */}
+          <div className="flex items-center gap-1.5 sm:gap-2 pt-2 border-t border-cream-border/60 overflow-x-auto no-scrollbar scroll-smooth -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap">
+            <span className="font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-brown-deep/50 mr-0.5 shrink-0">
               Family:
             </span>
             {families.map((family) => (
@@ -296,7 +296,7 @@ function StorefrontContent() {
                 key={family}
                 type="button"
                 onClick={() => setSelectedFamily(family)}
-                className={`rounded-xl px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-all ${
+                className={`shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all active:scale-95 ${
                   selectedFamily === family
                     ? 'bg-brown text-white shadow-sm'
                     : 'border border-cream-border bg-cream-soft text-brown-deep/70 hover:border-brown hover:bg-white hover:text-brown-deep'
@@ -310,16 +310,16 @@ function StorefrontContent() {
               <button
                 type="button"
                 onClick={handleClearFilters}
-                className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 font-mono uppercase tracking-wider"
+                className="ml-auto shrink-0 inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-red-600 hover:text-red-700 font-mono uppercase tracking-wider pl-2"
               >
                 <RotateCcw className="h-3 w-3" />
-                <span>Reset Filters</span>
+                <span>Reset</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* PRODUCTS GRID */}
+        {/* PRODUCTS MASONRY GRID (2-Col Mobile, 3-Col iPad/Tablet, 4-Col Wide Desktop) */}
         {isLoading ? (
           <div className="rounded-2xl border border-cream-border bg-white px-6 py-20 text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-brown border-t-transparent" />
@@ -351,9 +351,9 @@ function StorefrontContent() {
             </div>
           </div>
         ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 [column-fill:_balance]">
+          <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6 [column-fill:_balance]">
             {filteredProducts.map((product, index) => (
-              <div key={product.id} className="break-inside-avoid mb-6">
+              <div key={product.id} className="break-inside-avoid mb-3 sm:mb-4 md:mb-5 lg:mb-6">
                 <PerfumeCard product={product} onAddToCart={addToCart} index={index} />
               </div>
             ))}

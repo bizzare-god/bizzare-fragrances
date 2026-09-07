@@ -35,6 +35,15 @@ body {
   background: #A27B5C;
 }
 
+/* Hide scrollbar for horizontally-scrollable chip rows */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Luxury Glassmorphism & Accent Utils */
 .glass-panel {
   background: rgba(255, 255, 255, 0.85);
