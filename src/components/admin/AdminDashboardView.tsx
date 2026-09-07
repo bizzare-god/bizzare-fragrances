@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Order, OrderStatus, Product, Profile, ScentFamily, UserRole } from '@/types';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/Card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
@@ -93,12 +93,34 @@ export function AdminDashboardView({
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
+  // Admin catalog source: ALL fragrances (active + hidden), unlike the storefront's public list
+  const [catalog, setCatalog] = useState<Product[]>(products);
+
+  const reloadCatalog = useCallback(async () => {
+    try {
+      const res = await fetch('/api/products?all=true', { cache: 'no-store' });
+      const data = (await res.json().catch(() => null)) as { products?: Product[] } | null;
+      if (!res.ok) throw new Error('Unable to load the catalog.');
+      const nextProducts = data?.products as Product[] | undefined;
+      if (nextProducts && Array.isArray(nextProducts)) {
+        setCatalog(nextProducts);
+        setSelectedProductIds((prev) => prev.filter((id) => nextProducts.some((p) => p.id === id)));
+      }
+    } catch (err) {
+      console.error('Failed to reload the boutique catalog:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reloadCatalog();
+  }, [reloadCatalog]);
+
   // Metrics
   const totalRevenue = useMemo(
     () => orders.filter((o) => o.payment_status === 'paid').reduce((sum, o) => sum + o.total_amount, 0),
     [orders]
   );
-  const lowStockProducts = useMemo(() => products.filter((p) => p.stock < 5), [products]);
+  const lowStockProducts = useMemo(() => catalog.filter((p) => p.stock < 5), [catalog]);
   const pendingFulfillmentCount = useMemo(
     () => orders.filter((o) => o.status === 'processing' || o.status === 'pending').length,
     [orders]
@@ -117,14 +139,14 @@ export function AdminDashboardView({
   }, [profiles, userSearch]);
 
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
+    return catalog.filter((product) => {
       const q = productSearch.toLowerCase();
       const matchesQuery = product.name.toLowerCase().includes(q) || product.brand.toLowerCase().includes(q);
       const matchesFamily = productFamilyFilter === 'ALL' || product.scent_family === productFamilyFilter;
       const matchesLowStock = !showLowStockOnly || product.stock < 5;
       return matchesQuery && matchesFamily && matchesLowStock;
     });
-  }, [products, productSearch, productFamilyFilter, showLowStockOnly]);
+  }, [catalog, productSearch, productFamilyFilter, showLowStockOnly]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -152,6 +174,7 @@ export function AdminDashboardView({
         base_notes: [],
         is_active: true,
       });
+      await reloadCatalog();
       setShowAddModal(false);
       setFormName('');
       setFormPrice('');
@@ -187,6 +210,14 @@ export function AdminDashboardView({
     }
   };
 
+  const handleUpdateProduct = useCallback(
+    async (id: string, updates: Partial<Product>) => {
+      await onUpdateProduct(id, updates);
+      await reloadCatalog();
+    },
+    [onUpdateProduct, reloadCatalog]
+  );
+
   const toggleProductSelection = (id: string) => {
     setSelectedProductIds((prev) =>
       prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
@@ -205,6 +236,7 @@ export function AdminDashboardView({
     setIsBulkUpdating(true);
     try {
       await Promise.all(selectedProductIds.map((id) => onUpdateProduct(id, { is_active: active })));
+      await reloadCatalog();
       setSelectedProductIds([]);
     } catch (err) {
       console.error('Bulk catalog update failed:', err);
@@ -222,6 +254,7 @@ export function AdminDashboardView({
     setIsBulkUpdating(true);
     try {
       await Promise.all(selectedProductIds.map((id) => onDeleteProduct(id)));
+      await reloadCatalog();
       setSelectedProductIds([]);
     } catch (err) {
       console.error('Bulk catalog delete failed:', err);
@@ -237,7 +270,7 @@ export function AdminDashboardView({
     if (!confirmed) return;
     try {
       await onDeleteProduct(id);
-      setSelectedProductIds((prev) => prev.filter((pid) => pid !== id));
+      await reloadCatalog();
     } catch (err) {
       console.error('Failed to delete fragrance:', err);
     }
@@ -353,7 +386,7 @@ export function AdminDashboardView({
             </div>
           </div>
           <div className="mt-3 font-serif text-2xl font-bold text-brown-deep">
-            {products.length}{' '}
+            {catalog.length}{' '}
             <span className="text-sm font-normal text-brown-deep/60">scents</span>
           </div>
           <p className="mt-1 text-[11px] text-brown-deep/60">
@@ -383,7 +416,7 @@ export function AdminDashboardView({
       <Tabs
         tabs={[
           { id: 'orders', label: 'Customer Orders', icon: <DollarSign className="h-4 w-4" />, count: orders.length },
-          { id: 'products', label: 'Fragrance Collection', icon: <Package className="h-4 w-4" />, count: products.length },
+          { id: 'products', label: 'Fragrance Collection', icon: <Package className="h-4 w-4" />, count: catalog.length },
           { id: 'users', label: 'Client Directory', icon: <Users className="h-4 w-4" />, count: profiles.length },
         ]}
         activeTab={activeTab}
@@ -680,7 +713,7 @@ export function AdminDashboardView({
                           <button
                             type="button"
                             onClick={() =>
-                              onUpdateProduct(product.id, {
+                              void handleUpdateProduct(product.id, {
                                 stock: Math.max(product.stock - 1, 0),
                                 is_active: product.stock - 1 > 0,
                               })
@@ -700,7 +733,7 @@ export function AdminDashboardView({
                           <button
                             type="button"
                             onClick={() =>
-                              onUpdateProduct(product.id, {
+                              void handleUpdateProduct(product.id, {
                                 stock: product.stock + 1,
                                 is_active: true,
                               })
@@ -713,8 +746,20 @@ export function AdminDashboardView({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={product.is_active && product.stock > 0 ? 'emerald' : 'red'}>
-                          {product.is_active && product.stock > 0 ? 'AVAILABLE' : 'OUT OF STOCK'}
+                        <Badge
+                          variant={
+                            product.is_active && product.stock > 0
+                              ? 'emerald'
+                              : product.is_active
+                                ? 'amber'
+                                : 'red'
+                          }
+                        >
+                          {product.is_active && product.stock > 0
+                            ? 'AVAILABLE'
+                            : product.is_active
+                              ? 'OUT OF STOCK'
+                              : 'HIDDEN'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -722,7 +767,7 @@ export function AdminDashboardView({
                           <Button
                             size="sm"
                             variant={product.is_active ? 'danger' : 'default'}
-                            onClick={() => onUpdateProduct(product.id, { is_active: !product.is_active })}
+                            onClick={() => void handleUpdateProduct(product.id, { is_active: !product.is_active })}
                             className="text-xs font-bold"
                           >
                             {product.is_active ? 'Deactivate' : 'Activate'}
