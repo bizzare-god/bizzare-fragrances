@@ -1,13 +1,13 @@
 'use client';
 
 import { FormEvent, Suspense, useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, CheckCircle2, KeyRound, Mail, ShieldCheck, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff, KeyRound, Mail, ShieldCheck, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useStoreContext } from '@/components/providers/StoreProvider';
 import { UserRole } from '@/types';
 
 const destinations: Record<UserRole, string> = {
-  buyer: '/shop',
+  buyer: '/account',
   admin: '/admin',
 };
 
@@ -23,6 +23,8 @@ function LoginFormContent() {
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   // Forgot password & OTP reset states
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -269,15 +271,25 @@ function LoginFormContent() {
                 </button>
               )}
             </div>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={12}
-              className="mt-1.5 h-11 w-full rounded-xl border border-cream-border bg-cream-soft px-3.5 text-sm font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
-              placeholder="At least 12 characters"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={12}
+                className="mt-1.5 h-11 w-full rounded-xl border border-cream-border bg-cream-soft pr-11 pl-3.5 text-sm font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
+                placeholder="At least 12 characters"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-brown-deep/40 transition-colors hover:text-brown-deep"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           {message && (
@@ -408,15 +420,25 @@ function LoginFormContent() {
                   <label className="block font-mono text-xs font-bold uppercase tracking-wider text-brown-deep">
                     New Password (min 12 characters) *
                   </label>
+                  <div className="relative">
                   <input
-                    type="password"
+                    type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     minLength={12}
-                    className="mt-1.5 h-11 w-full rounded-xl border border-cream-border bg-cream-soft px-3.5 text-sm font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
+                    className="mt-1.5 h-11 w-full rounded-xl border border-cream-border bg-cream-soft pr-11 pl-3.5 text-sm font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
                     placeholder="Enter new 12+ character password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-brown-deep/40 transition-colors hover:text-brown-deep"
+                    aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 </div>
 
                 <div className="flex items-center justify-between text-xs">

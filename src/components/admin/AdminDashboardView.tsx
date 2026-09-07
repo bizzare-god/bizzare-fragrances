@@ -23,6 +23,11 @@ import {
   Clock,
   Check,
   Filter,
+  EyeOff,
+  Loader2,
+  Trash2,
+  UploadCloud,
+  X,
 } from 'lucide-react';
 
 interface AdminDashboardViewProps {
@@ -80,6 +85,14 @@ export function AdminDashboardView({
   const [formDescription, setFormDescription] = useState('');
   const [formNotes, setFormNotes] = useState('');
 
+  // Image upload state
+  const [formImageUploading, setFormImageUploading] = useState(false);
+  const [formImageError, setFormImageError] = useState('');
+
+  // Bulk catalog selection
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+
   // Metrics
   const totalRevenue = useMemo(
     () => orders.filter((o) => o.payment_status === 'paid').reduce((sum, o) => sum + o.total_amount, 0),
@@ -132,7 +145,7 @@ export function AdminDashboardView({
         price: parseFloat(formPrice),
         stock: parseInt(formStock, 10),
         volume_ml: parseInt(formVolume, 10) || 100,
-        image_url: formImage.trim() || 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=800&q=80',
+        image_url: formImage.trim(),
         description: formDescription.trim(),
         top_notes: formNotes ? formNotes.split(',').map((s) => s.trim()).filter(Boolean) : [],
         middle_notes: [],
@@ -145,10 +158,88 @@ export function AdminDashboardView({
       setFormStock('15');
       setFormDescription('');
       setFormNotes('');
+      setFormImage('');
+      setFormImageError('');
     } catch (err) {
       console.error('Failed to create fragrance:', err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFormImageError('');
+    setFormImageUploading(true);
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const res = await fetch('/api/uploads', { method: 'POST', body });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Image upload failed. Please try again.');
+      setFormImage(data.url);
+    } catch (err) {
+      setFormImageError(err instanceof Error ? err.message : 'Unable to upload image.');
+    } finally {
+      setFormImageUploading(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const toggleProductSelection = (id: string) => {
+    setSelectedProductIds((prev) =>
+      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllVisible = () => {
+    const visibleIds = filteredProducts.map((p) => p.id);
+    const allSelected =
+      visibleIds.length > 0 && visibleIds.every((id) => selectedProductIds.includes(id));
+    setSelectedProductIds(allSelected ? [] : visibleIds);
+  };
+
+  const bulkSetActive = async (active: boolean) => {
+    if (selectedProductIds.length === 0) return;
+    setIsBulkUpdating(true);
+    try {
+      await Promise.all(selectedProductIds.map((id) => onUpdateProduct(id, { is_active: active })));
+      setSelectedProductIds([]);
+    } catch (err) {
+      console.error('Bulk catalog update failed:', err);
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selectedProductIds.length === 0) return;
+    const confirmed = window.confirm(
+      `Permanently delete ${selectedProductIds.length} fragrance${selectedProductIds.length > 1 ? 's' : ''}? This cannot be undone.`
+    );
+    if (!confirmed) return;
+    setIsBulkUpdating(true);
+    try {
+      await Promise.all(selectedProductIds.map((id) => onDeleteProduct(id)));
+      setSelectedProductIds([]);
+    } catch (err) {
+      console.error('Bulk catalog delete failed:', err);
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const deleteProduct = async (id: string, name: string) => {
+    const confirmed = window.confirm(
+      `Permanently delete "${name}"? This cannot be undone.`
+    );
+    if (!confirmed) return;
+    try {
+      await onDeleteProduct(id);
+      setSelectedProductIds((prev) => prev.filter((pid) => pid !== id));
+    } catch (err) {
+      console.error('Failed to delete fragrance:', err);
     }
   };
 
@@ -482,21 +573,86 @@ export function AdminDashboardView({
                 <p className="mt-1 text-xs text-brown-deep/60">Try clearing filters or adding a new fragrance creation.</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fragrance</TableHead>
-                    <TableHead>Olfactory Family</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Live Stock</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProducts.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell className="font-semibold text-brown-deep">
+              <>
+                {selectedProductIds.length > 0 && (
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-brown/20 bg-brown/5 px-4 py-2.5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-brown">
+                      {selectedProductIds.length} fragrance{selectedProductIds.length > 1 ? 's' : ''} selected
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => bulkSetActive(true)}
+                        disabled={isBulkUpdating}
+                        className="gap-1.5 text-xs font-bold"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        Activate
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => bulkSetActive(false)}
+                        disabled={isBulkUpdating}
+                        className="gap-1.5 text-xs font-bold"
+                      >
+                        <EyeOff className="h-3.5 w-3.5" />
+                        Hide
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => void bulkDelete()}
+                        disabled={isBulkUpdating}
+                        className="gap-1.5 text-xs font-bold"
+                      >
+                        {isBulkUpdating ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-3.5 w-3.5" />
+                        )}
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-10">
+                        <input
+                          type="checkbox"
+                          checked={
+                            filteredProducts.length > 0 &&
+                            filteredProducts.every((p) => selectedProductIds.includes(p.id))
+                          }
+                          onChange={toggleSelectAllVisible}
+                          className="h-4 w-4 cursor-pointer accent-brown"
+                          aria-label="Select all fragrances"
+                        />
+                      </TableHead>
+                      <TableHead>Fragrance</TableHead>
+                      <TableHead>Olfactory Family</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Live Stock</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProducts.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            checked={selectedProductIds.includes(product.id)}
+                            onChange={() => toggleProductSelection(product.id)}
+                            className="h-4 w-4 cursor-pointer accent-brown"
+                            aria-label={`Select ${product.name}`}
+                          />
+                        </TableCell>
+                        <TableCell className="font-semibold text-brown-deep">
                         <div className="flex items-center gap-3">
                           <img
                             src={product.image_url}
@@ -571,12 +727,22 @@ export function AdminDashboardView({
                           >
                             {product.is_active ? 'Deactivate' : 'Activate'}
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => void deleteProduct(product.id, product.name)}
+                            className="text-xs font-bold text-red-700 hover:bg-red-50 hover:text-red-800"
+                            aria-label={`Delete ${product.name}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+              </>
             )}
           </CardContent>
         </Card>
@@ -764,13 +930,54 @@ export function AdminDashboardView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-brown-deep">Image URL</label>
-                  <Input
-                    placeholder="https://images.unsplash.com/..."
-                    value={formImage}
-                    onChange={(e) => setFormImage(e.target.value)}
-                    className="mt-1"
-                  />
+                  <label className="block text-xs font-bold uppercase tracking-wider text-brown-deep">
+                    Fragrance Image
+                  </label>
+                  <div className="mt-1.5 space-y-2">
+                    {formImage ? (
+                      <div className="relative overflow-hidden rounded-lg border border-cream-border">
+                        <img
+                          src={formImage}
+                          alt="Fragrance preview"
+                          className="h-36 w-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setFormImage('')}
+                          className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white transition-colors hover:bg-black/80"
+                          aria-label="Remove image"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : formImageUploading ? (
+                      <div className="flex h-36 items-center justify-center rounded-lg border border-dashed border-cream-border bg-cream-soft">
+                        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brown">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Uploading to storage...
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="flex h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-cream-border bg-cream-soft text-center text-brown-deep/60 transition-colors hover:border-brown hover:text-brown">
+                        <UploadCloud className="h-6 w-6 text-brown" />
+                        <span className="px-4 text-xs font-bold uppercase tracking-wider">
+                          Click to upload image
+                        </span>
+                        <span className="px-4 text-[10px] text-brown-deep/50">
+                          JPG, PNG, or WebP up to 10 MB — stored in boutique cloud storage
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          className="hidden"
+                          onChange={(e) => void handleImageUpload(e)}
+                        />
+                      </label>
+                    )}
+                    {formImageError && (
+                      <p className="text-xs font-bold text-red-700">{formImageError}</p>
+                    )}
+                  </div>
                 </div>
               </div>
 

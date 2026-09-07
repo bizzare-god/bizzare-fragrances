@@ -129,7 +129,7 @@ export function useStore() {
     try {
       localStorage.setItem(USER_CACHE_KEY, JSON.stringify(profile));
     } catch {}
-    await refreshStore();
+    void refreshStore();
   }, [refreshStore]);
 
   const signOut = useCallback(async () => {
