@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Bizzare' }],
   creator: 'Bizzare',
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/apple-icon.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_NG',
@@ -27,11 +32,20 @@ export const metadata: Metadata = {
     siteName: 'Bizzare Fragrances (by Bizzare)',
     title: 'Bizzare Fragrances (by Bizzare) | Artisanal Luxury Perfumery',
     description: 'Exclusive artisanal luxury perfume collection by Bizzare with secure Paystack checkout and concierge support.',
+    images: [
+      {
+        url: '/og-logo.png',
+        width: 412,
+        height: 362,
+        alt: 'Bizzare Fragrances (by Bizzare)',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Bizzare Fragrances (by Bizzare)',
     description: 'Exclusive artisanal luxury perfume collection by Bizzare.',
+    images: ['/og-logo.png'],
   },
 };
 
@@ -48,6 +62,22 @@ export default function RootLayout({
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,400&display=swap"
           rel="stylesheet"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Bizzare Fragrances (by Bizzare)',
+              url: 'https://bizzarefragrances.shop',
+              logo: 'https://bizzarefragrances.shop/og-logo.png',
+              sameAs: [
+                'https://instagram.com/bizzare_fragrances',
+                'https://wa.me/2349114743607',
+              ],
+            }),
+          }}
         />
       </head>
       <body className="bg-cream-soft text-brown-deep antialiased">

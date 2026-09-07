@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Headphones, Instagram, Mail, MessageCircle, Phone, ShieldCheck, Truck } from 'lucide-react';
+import { Headphones, Instagram, Mail, MessageCircle, Phone, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -51,6 +51,17 @@ export function Footer() {
               >
                 <MessageCircle className="h-4 w-4" />
                 <span>WhatsApp: +234 911 474 3607</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://wa.me/2349114743607?text=Hello%20Bizzare%20Fragrances%2C%20I%20would%20like%20to%20inquire%20about%20combo%20and%20bulk%20deals"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-brown-warm hover:text-white font-medium transition-colors"
+              >
+                <ShoppingBag className="h-4 w-4" />
+                <span>Combo & Bulk Deals Inquiry</span>
               </a>
             </li>
             <li>

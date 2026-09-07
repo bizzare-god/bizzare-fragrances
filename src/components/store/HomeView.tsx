@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   ArrowRight,
   Headphones,
+  MessageCircle,
   PackageCheck,
   ShieldCheck,
   ShoppingBag,
@@ -343,6 +344,15 @@ export function HomeView() {
                 <Headphones className="h-4 w-4" />
                 Customer Service Desk
               </Link>
+              <a
+                href="https://wa.me/2349114743607?text=Hello%20Bizzare%20Fragrances%2C%20I%20would%20like%20to%20inquire%20about%20combo%20and%20bulk%20deals"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-11 items-center gap-2 rounded-xl border border-emerald-600/40 bg-emerald-50 px-5 text-xs font-bold uppercase tracking-[0.16em] text-emerald-800 hover:bg-emerald-100"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Combo & Bulk Deals
+              </a>
               <Link
                 href="/faq"
                 className="inline-flex h-11 items-center rounded-xl border border-cream-border bg-white px-5 text-xs font-bold uppercase tracking-[0.16em] text-brown-deep hover:border-brown"
