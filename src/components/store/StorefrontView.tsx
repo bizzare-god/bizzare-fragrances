@@ -58,7 +58,18 @@ function StorefrontContent() {
     isAuthenticated && currentUser
       ? orders.filter((order) => order.customer_id === currentUser.id)
       : [];
-  const heroProduct = products.find((product) => product.stock > 0) ?? products[0];
+
+  // Automatically select the most recently uploaded perfume as the featured fragrance
+  const heroProduct = useMemo(() => {
+    if (!products || products.length === 0) return null;
+    return (
+      [...products].sort((a, b) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return timeB - timeA;
+      })[0] ?? products[0]
+    );
+  }, [products]);
 
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
@@ -194,7 +205,7 @@ function StorefrontContent() {
             {
               icon: Truck,
               title: 'Express Tracked Delivery',
-              text: 'Follow your fragrance from boutique bottling to doorstep delivery.',
+              text: 'Follow your authentic imported fragrance from boutique dispatch to doorstep delivery.',
             },
           ].map((item) => {
             const Icon = item.icon;

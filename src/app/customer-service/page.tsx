@@ -1,7 +1,52 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { CheckCircle2, Headphones, Mail, MessageSquare, Send, Sparkles, Truck } from 'lucide-react';
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Headphones,
+  Instagram,
+  Mail,
+  MessageCircle,
+  Phone,
+  Send,
+  Sparkles,
+} from 'lucide-react';
+
+const contactChannels = [
+  {
+    icon: MessageCircle,
+    title: 'WhatsApp Direct',
+    value: '+234 911 474 3607',
+    href: 'https://wa.me/2349114743607?text=Hello%20Bizzare%20Fragrances%2C%20I%20would%20like%20to%20inquire%20about%20a%20fragrance',
+    actionText: 'Chat on WhatsApp',
+    badge: 'Instant Reply',
+  },
+  {
+    icon: Instagram,
+    title: 'Instagram',
+    value: '@bizzare_fragrances',
+    href: 'https://instagram.com/bizzare_fragrances',
+    actionText: 'Open Instagram DM',
+    badge: 'Official Page',
+  },
+  {
+    icon: Phone,
+    title: 'Phone Call',
+    value: '0911 474 3607',
+    href: 'tel:09114743607',
+    actionText: 'Call Boutique Desk',
+    badge: 'Direct Line',
+  },
+  {
+    icon: Mail,
+    title: 'Email Concierge',
+    value: 'concierge@bizzarefragrances.shop',
+    href: 'mailto:concierge@bizzarefragrances.shop',
+    actionText: 'Send Email',
+    badge: '24/7 Mailbox',
+  },
+];
 
 export default function CustomerServicePage() {
   const [name, setName] = useState('');
@@ -45,27 +90,46 @@ export default function CustomerServicePage() {
   return (
     <div className="mx-auto max-w-5xl py-12 px-4 sm:px-6 lg:py-16 text-brown-deep">
       <div className="max-w-2xl">
-        <p className="text-[11px] uppercase tracking-[0.28em] text-brown-warm font-mono font-bold">Concierge Service</p>
+        <p className="text-[11px] uppercase tracking-[0.28em] text-brown-warm font-mono font-bold">Concierge & Client Care</p>
         <h1 className="mt-3 font-serif text-4xl sm:text-5xl font-bold">Bespoke guidance for orders and fragrance choices.</h1>
         <p className="mt-5 text-base leading-8 text-brown-deep/70">
-          Connect directly with our concierge team for olfactory consultations, bespoke curation, checkout assistance, and direct delivery updates.
+          Connect directly with our boutique team for olfactory consultations, bespoke curation, direct order inquiries, and instant updates across our official channels.
         </p>
       </div>
 
-      <div className="mt-10 grid gap-4 md:grid-cols-3">
-        {[
-          { icon: Mail, title: 'Email Concierge', text: 'concierge@bizzarefragrances.shop' },
-          { icon: MessageSquare, title: 'WhatsApp Direct', text: '+234 809 777 8899' },
-          { icon: Truck, title: 'Order Tracking', text: 'Live fulfillment in account' },
-        ].map((item) => {
+      {/* Direct Clickable Contact Cards */}
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {contactChannels.map((item) => {
           const Icon = item.icon;
 
           return (
-            <div key={item.title} className="rounded-2xl border border-cream-border bg-white p-6 shadow-sm">
-              <Icon className="h-6 w-6 text-brown" />
-              <h2 className="mt-4 font-serif text-xl font-bold text-brown-deep">{item.title}</h2>
-              <p className="mt-2 text-sm leading-7 text-brown-deep/70">{item.text}</p>
-            </div>
+            <a
+              key={item.title}
+              href={item.href}
+              target={item.href.startsWith('http') ? '_blank' : undefined}
+              rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              className="group relative flex flex-col justify-between rounded-2xl border border-cream-border bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brown/40 hover:shadow-card-soft"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cream-soft text-brown group-hover:bg-brown group-hover:text-white transition-colors">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full bg-cream-soft px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider text-brown-warm border border-cream-border">
+                    {item.badge}
+                  </span>
+                </div>
+                <h2 className="mt-4 font-serif text-lg font-bold text-brown-deep group-hover:text-brown transition-colors">
+                  {item.title}
+                </h2>
+                <p className="mt-1 font-mono text-xs font-semibold text-brown-deep/80 break-all">{item.value}</p>
+              </div>
+
+              <div className="mt-4 flex items-center gap-1 border-t border-cream-border/60 pt-3 text-xs font-bold uppercase tracking-wider text-brown group-hover:text-brown-hover">
+                <span>{item.actionText}</span>
+                <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </div>
+            </a>
           );
         })}
       </div>
@@ -80,7 +144,7 @@ export default function CustomerServicePage() {
           Request a Consultation or Order Inquiries
         </h2>
         <p className="mt-2 text-sm text-brown-deep/70 max-w-2xl">
-          Submit your notes or inquiry below. Our fragrance specialists review and reply directly to your email inbox.
+          Submit your olfactory preferences or inquiry below. Our fragrance specialists review and reply directly to your email inbox.
         </p>
 
         {submitted ? (
@@ -88,7 +152,7 @@ export default function CustomerServicePage() {
             <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
             <h3 className="mt-4 font-serif text-2xl font-bold text-green-900">Inquiry Dispatched</h3>
             <p className="mt-2 text-sm text-green-800 max-w-md mx-auto">
-              Thank you, <strong>{name}</strong>. Your message has been forwarded to <strong>concierge@bizzarefragrances.shop</strong>. A concierge specialist will contact you shortly.
+              Thank you, <strong>{name}</strong>. Your message has been forwarded to our concierge desk. A specialist will respond promptly.
             </p>
             <button
               onClick={() => {
@@ -134,12 +198,12 @@ export default function CustomerServicePage() {
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <label className="block font-mono text-xs font-bold uppercase tracking-wider text-brown-deep">
-                  Phone Number <span className="font-normal text-brown-deep/50">(optional)</span>
+                  Phone / WhatsApp <span className="font-normal text-brown-deep/50">(optional)</span>
                 </label>
                 <input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+234..."
+                  placeholder="0911 474 3607"
                   className="mt-1.5 h-11 w-full rounded-xl border border-cream-border bg-cream-soft px-3.5 font-mono text-sm font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
                 />
               </div>
@@ -206,7 +270,7 @@ export default function CustomerServicePage() {
       <div className="mt-8 flex items-start gap-3 rounded-2xl border border-cream-border bg-cream-light p-6">
         <Headphones className="mt-1 h-5 w-5 shrink-0 text-brown" />
         <p className="text-sm leading-7 text-brown-deep/70">
-          For olfactory matching, describe your signature notes, occasion, and whether you seek a daytime sillage, evening extrait, or bespoke gift.
+          For olfactory matching or quick advice, you can also reach us directly on WhatsApp at <a href="https://wa.me/2349114743607" target="_blank" rel="noopener noreferrer" className="font-bold text-brown hover:underline">+234 911 474 3607</a> or via Instagram <a href="https://instagram.com/bizzare_fragrances" target="_blank" rel="noopener noreferrer" className="font-bold text-brown hover:underline">@bizzare_fragrances</a>.
         </p>
       </div>
     </div>

@@ -169,11 +169,11 @@ export default function ProductDetailPage() {
           <div className="grid gap-3 border-t border-cream-border pt-6 sm:grid-cols-2">
             <div className="flex items-start gap-3">
               <ShieldCheck className="mt-0.5 h-5 w-5 text-brown" />
-              <p className="text-xs leading-5 text-brown-deep/70">Authentic boutique extraction with secure Paystack checkout.</p>
+              <p className="text-xs leading-5 text-brown-deep/70">100% genuine imported luxury fragrance with secure Paystack checkout.</p>
             </div>
             <div className="flex items-start gap-3">
               <Sparkles className="mt-0.5 h-5 w-5 text-brown" />
-              <p className="text-xs leading-5 text-brown-deep/70">Artisanal packaging and direct fulfillment by Bizzare.</p>
+              <p className="text-xs leading-5 text-brown-deep/70">Protective luxury packaging and direct tracked fulfillment by Bizzare.</p>
             </div>
           </div>
         </div>
