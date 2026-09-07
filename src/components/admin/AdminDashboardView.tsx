@@ -895,7 +895,7 @@ export function AdminDashboardView({
                   <label className="block text-xs font-bold uppercase tracking-wider text-brown-deep">Price (₦) *</label>
                   <Input
                     type="number"
-                    step="100"
+                    step="1"
                     min="1"
                     required
                     placeholder="e.g. 85000"
