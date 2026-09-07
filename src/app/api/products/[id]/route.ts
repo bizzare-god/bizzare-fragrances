@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import { authConfigured, configurationError, getSessionUser, hasRole } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { productDto } from '@/lib/serializers';
@@ -105,20 +105,46 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const existing = await prisma.product.findUnique({ where: { id: params.id } });
     if (!existing) return NextResponse.json({ error: 'Product not found.' }, { status: 404 });
 
-    await prisma.product.update({ where: { id: existing.id }, data: { isActive: false } });
+    try {
+      await prisma.product.delete({ where: { id: existing.id } });
 
-    await recordAuditLog({
-      actorId: user.id,
-      actorName: user.name,
-      action: 'DEACTIVATE_PRODUCT',
-      targetType: 'Product',
-      targetId: existing.id,
-    });
+      await recordAuditLog({
+        actorId: user.id,
+        actorName: user.name,
+        action: 'DELETE_PRODUCT',
+        targetType: 'Product',
+        targetId: existing.id,
+        details: { name: existing.name },
+      });
 
-    invalidateProductCache();
+      invalidateProductCache();
 
-    return NextResponse.json({ message: 'Product deactivated in the boutique.' });
-  } catch {
+      return NextResponse.json({ message: 'Product permanently deleted.' });
+    } catch (error) {
+      // Products referenced by order history are restricted by the DB (onDelete: Restrict).
+      // Keep the record for historical order integrity but take it out of the boutique.
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+        await prisma.product.update({ where: { id: existing.id }, data: { isActive: false } });
+
+        await recordAuditLog({
+          actorId: user.id,
+          actorName: user.name,
+          action: 'DEACTIVATE_PRODUCT',
+          targetType: 'Product',
+          targetId: existing.id,
+          details: { name: existing.name, reason: 'Referenced by order history; hidden instead of deleted.' },
+        });
+
+        invalidateProductCache();
+
+        return NextResponse.json({
+          message: 'This fragrance is part of order history, so it was hidden from the boutique instead of deleted.',
+        });
+      }
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error deleting product:', error);
     return NextResponse.json({ error: 'Unable to remove the product.' }, { status: 500 });
   }
 }
