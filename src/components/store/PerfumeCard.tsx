@@ -3,83 +3,138 @@
 import React from 'react';
 import Link from 'next/link';
 import { Product } from '@/types';
-import { Button } from '@/components/ui/Button';
 import { formatCurrency } from '@/lib/utils';
-import { ArrowUpRight, ShoppingBag } from 'lucide-react';
+import { ArrowUpRight, Sparkles, ShoppingBag } from 'lucide-react';
 
 interface PerfumeCardProps {
   product: Product;
   onAddToCart: (product: Product) => void;
+  index?: number;
 }
 
-export function PerfumeCard({ product, onAddToCart }: PerfumeCardProps) {
+// Varied editorial aspect ratios for staggered Masonry lookbook grid
+const MASONRY_ASPECT_RATIOS = [
+  'aspect-[3/4]',
+  'aspect-[4/5]',
+  'aspect-[1/1]',
+  'aspect-[3/4]',
+  'aspect-[4/5]',
+];
+
+export function PerfumeCard({ product, onAddToCart, index = 0 }: PerfumeCardProps) {
   const purchasable = product.stock > 0 && product.is_active;
-  const lowStock = product.stock > 0 && product.stock < 5;
+  const lowStock = product.stock > 0 && product.stock <= 3;
+  const aspectClass = MASONRY_ASPECT_RATIOS[index % MASONRY_ASPECT_RATIOS.length];
+
+  const notesList = [
+    ...product.top_notes.slice(0, 2),
+    ...product.middle_notes.slice(0, 2),
+    ...product.base_notes.slice(0, 1),
+  ].filter(Boolean);
 
   return (
-    <article className="group border border-cream-border bg-white">
-      <Link href={`/product/${product.id}`} className="block">
-        <div className="relative aspect-[4/5] overflow-hidden bg-brown-deep">
-          {product.image_url ? <img src={product.image_url} alt={product.name} className={`h-full w-full object-cover transition duration-700 group-hover:scale-105 ${purchasable ? 'opacity-95' : 'opacity-45 grayscale'}`} /> : <div className="flex h-full items-center justify-center px-6 text-center font-serif text-xl text-cream-muted">Image pending</div>}
-          <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
-            <span className="bg-black/70 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-cream-light">
-              {product.category ?? product.scent_family}
-            </span>
-            <span
-              className={`px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${
-                purchasable ? 'bg-cream-light text-brown-deep' : 'bg-black text-brown-warm'
+    <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-cream-border bg-white shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-brown/40 hover:shadow-card-soft">
+      {/* Imagery with Dynamic Staggered Masonry Aspect Ratio */}
+      <Link href={`/product/${product.id}`} className="relative block overflow-hidden bg-brown-deep">
+        <div className={`w-full ${aspectClass} overflow-hidden bg-gradient-to-br from-brown-deep to-black`}>
+          {product.image_url ? (
+            <img
+              src={product.image_url}
+              alt={product.name}
+              loading="lazy"
+              className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${
+                purchasable ? 'opacity-95' : 'opacity-40 grayscale'
               }`}
-            >
-              {purchasable ? 'In Stock' : 'Sold Out'}
-            </span>
-          </div>
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center p-6 text-center">
+              <Sparkles className="h-8 w-8 text-brown-warm/50" />
+            </div>
+          )}
+        </div>
+
+        {/* Floating Gradient Overlay on Hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 opacity-60 transition-opacity duration-300 group-hover:opacity-80" />
+
+        {/* Top Badges */}
+        <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3.5">
+          <span className="rounded-full bg-black/65 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-cream-light backdrop-blur-md border border-white/10">
+            {product.scent_family}
+          </span>
+          <span
+            className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.16em] backdrop-blur-md ${
+              purchasable
+                ? lowStock
+                  ? 'border border-amber-400/40 bg-amber-950/75 text-amber-300'
+                  : 'border border-white/15 bg-white/90 text-brown-deep font-semibold shadow-sm'
+                : 'border border-red-500/30 bg-black/80 text-red-400'
+            }`}
+          >
+            {purchasable ? (lowStock ? `${product.stock} Left` : 'Available') : 'Sold Out'}
+          </span>
+        </div>
+
+        {/* Hover Quick View Trigger */}
+        <div className="absolute bottom-3 right-3 opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-brown-deep shadow-lg backdrop-blur-md hover:bg-brown hover:text-white transition-colors">
+            <ArrowUpRight className="h-4 w-4" />
+          </span>
         </div>
       </Link>
 
-      <div className="space-y-4 p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="truncate text-[11px] uppercase tracking-[0.2em] text-brown-warm">
-              {product.brand}
-            </p>
-            <Link href={`/product/${product.id}`} className="mt-1 block">
-              <h3 className="truncate font-serif text-xl font-bold text-brown-deep group-hover:text-brown">
-                {product.name}
-              </h3>
-            </Link>
-            <p className="mt-1 text-sm text-brown-deep/60">
-              {product.volume_ml} ml / {product.scent_family}
-            </p>
+      {/* Content Details */}
+      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-[0.2em] text-brown-warm">
+            <span>{product.brand}</span>
+            <span>{product.volume_ml}ml Extrait</span>
           </div>
-          <Link
-            href={`/product/${product.id}`}
-            aria-label={`View ${product.name}`}
-            className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center border border-cream-border text-brown hover:border-brown hover:bg-brown hover:text-white"
-          >
-            <ArrowUpRight className="h-4 w-4" />
+
+          <Link href={`/product/${product.id}`} className="block">
+            <h3 className="font-serif text-lg sm:text-xl font-bold text-brown-deep transition-colors group-hover:text-brown">
+              {product.name}
+            </h3>
           </Link>
+
+          {/* Olfactory Accords / Fragrance Notes */}
+          {notesList.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {notesList.map((note) => (
+                <span
+                  key={note}
+                  className="inline-block rounded-md border border-cream-border bg-cream-soft/60 px-2 py-0.5 text-[10px] font-medium text-brown-deep/75"
+                >
+                  {note}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {product.description && (
+            <p className="line-clamp-2 text-xs leading-5 text-brown-deep/65">
+              {product.description}
+            </p>
+          )}
         </div>
 
-        <p className="line-clamp-2 text-sm leading-6 text-brown-deep/70">
-          {[...product.top_notes.slice(0, 2), ...product.middle_notes.slice(0, 1), ...product.base_notes.slice(0, 1)].join(', ')}
-        </p>
-
-        <div className="flex items-end justify-between border-t border-cream-border pt-4">
+        {/* Footer with Price and Quick Add */}
+        <div className="mt-4 flex items-center justify-between border-t border-cream-border/70 pt-3.5">
           <div>
-            <p className="font-serif text-xl font-bold text-brown">{formatCurrency(product.price)}</p>
-            <p className={`mt-1 text-xs font-semibold ${lowStock ? 'text-red-700' : 'text-brown-deep/55'}`}>
-              {purchasable ? `${product.stock} available${lowStock ? ' / low stock' : ''}` : 'Unavailable for purchase'}
+            <p className="text-[10px] uppercase tracking-wider font-mono text-brown-deep/50">Acquisition</p>
+            <p className="font-serif text-lg sm:text-xl font-bold text-brown">
+              {formatCurrency(product.price)}
             </p>
           </div>
-          <Button
-            size="sm"
+
+          <button
+            type="button"
             disabled={!purchasable}
             onClick={() => onAddToCart(product)}
-            className="h-10 gap-2 bg-brown px-3 text-xs font-bold uppercase tracking-[0.14em] text-white hover:bg-brown-hover"
+            className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brown px-3.5 text-xs font-bold uppercase tracking-[0.14em] text-white shadow-sm transition-all hover:bg-brown-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ShoppingBag className="h-3.5 w-3.5" />
             <span>{purchasable ? 'Add' : 'Sold'}</span>
-          </Button>
+          </button>
         </div>
       </div>
     </article>

@@ -351,9 +351,11 @@ function StorefrontContent() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredProducts.map((product) => (
-              <PerfumeCard key={product.id} product={product} onAddToCart={addToCart} />
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 [column-fill:_balance]">
+            {filteredProducts.map((product, index) => (
+              <div key={product.id} className="break-inside-avoid mb-6">
+                <PerfumeCard product={product} onAddToCart={addToCart} index={index} />
+              </div>
             ))}
           </div>
         )}
