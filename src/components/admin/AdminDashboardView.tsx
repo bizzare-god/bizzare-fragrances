@@ -78,9 +78,7 @@ export function AdminDashboardView({
   const [formVolume, setFormVolume] = useState('100');
   const [formImage, setFormImage] = useState('');
   const [formDescription, setFormDescription] = useState('');
-  const [formTopNotes, setFormTopNotes] = useState('');
-  const [formMiddleNotes, setFormMiddleNotes] = useState('');
-  const [formBaseNotes, setFormBaseNotes] = useState('');
+  const [formNotes, setFormNotes] = useState('');
 
   // Metrics
   const totalRevenue = useMemo(
@@ -136,9 +134,9 @@ export function AdminDashboardView({
         volume_ml: parseInt(formVolume, 10) || 100,
         image_url: formImage.trim() || 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=800&q=80',
         description: formDescription.trim(),
-        top_notes: formTopNotes ? formTopNotes.split(',').map((s) => s.trim()).filter(Boolean) : [],
-        middle_notes: formMiddleNotes ? formMiddleNotes.split(',').map((s) => s.trim()).filter(Boolean) : [],
-        base_notes: formBaseNotes ? formBaseNotes.split(',').map((s) => s.trim()).filter(Boolean) : [],
+        top_notes: formNotes ? formNotes.split(',').map((s) => s.trim()).filter(Boolean) : [],
+        middle_notes: [],
+        base_notes: [],
         is_active: true,
       });
       setShowAddModal(false);
@@ -146,9 +144,7 @@ export function AdminDashboardView({
       setFormPrice('');
       setFormStock('15');
       setFormDescription('');
-      setFormTopNotes('');
-      setFormMiddleNotes('');
-      setFormBaseNotes('');
+      setFormNotes('');
     } catch (err) {
       console.error('Failed to create fragrance:', err);
     } finally {
@@ -789,34 +785,16 @@ export function AdminDashboardView({
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-brown-deep">Top Notes (comma separated)</label>
-                  <Input
-                    placeholder="Bergamot, Cardamom"
-                    value={formTopNotes}
-                    onChange={(e) => setFormTopNotes(e.target.value)}
-                    className="mt-1 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-brown-deep">Middle Notes</label>
-                  <Input
-                    placeholder="Turkish Rose, Iris"
-                    value={formMiddleNotes}
-                    onChange={(e) => setFormMiddleNotes(e.target.value)}
-                    className="mt-1 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-brown-deep">Base Notes</label>
-                  <Input
-                    placeholder="Oud, Sandalwood, Amber"
-                    value={formBaseNotes}
-                    onChange={(e) => setFormBaseNotes(e.target.value)}
-                    className="mt-1 text-xs"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-brown-deep">
+                  Fragrance Notes & Accords (comma separated)
+                </label>
+                <Input
+                  placeholder="e.g. Bergamot, Cardamom, Turkish Rose, Iris, Oud, Sandalwood, Amber"
+                  value={formNotes}
+                  onChange={(e) => setFormNotes(e.target.value)}
+                  className="mt-1 text-xs"
+                />
               </div>
 
               <div className="flex items-center justify-end gap-3 border-t border-cream-border pt-4">

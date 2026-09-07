@@ -84,6 +84,13 @@ export default function ProductDetailPage() {
   }
 
   const purchasable = product.stock > 0 && product.is_active;
+  const allNotes = Array.from(
+    new Set(
+      [...(product.top_notes || []), ...(product.middle_notes || []), ...(product.base_notes || [])]
+        .map((n) => n.trim())
+        .filter(Boolean)
+    )
+  );
 
   return (
     <div className="pb-16 pt-6 text-brown-deep">
@@ -129,25 +136,40 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              { label: 'Top Notes', notes: product.top_notes },
-              { label: 'Heart Notes', notes: product.middle_notes },
-              { label: 'Base Notes', notes: product.base_notes },
-            ].map((group) => (
-              <div key={group.label} className="rounded-xl border border-cream-border bg-white p-4 shadow-sm">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-brown-warm font-mono font-bold">{group.label}</p>
-                <p className="mt-2 text-xs leading-6 text-brown-deep/75">
-                  {group.notes.length > 0 ? group.notes.join(', ') : 'Proprietary notes'}
-                </p>
-              </div>
-            ))}
-          </div>
+          {/* Unified Fragrance Story & Olfactory Profile */}
+          <div className="rounded-2xl border border-cream-border bg-white p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-cream-border/70 pb-3">
+              <span className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-brown-warm">
+                Fragrance Profile & Notes
+              </span>
+              <span className="font-mono text-xs font-bold text-brown bg-cream-soft px-2.5 py-0.5 rounded-full border border-cream-border">
+                {product.scent_family}
+              </span>
+            </div>
 
-          <p className="max-w-2xl text-base leading-8 text-brown-deep/75">
-            {product.description ||
-              `An exclusive creation by ${product.brand}, composed for connoisseurs who appreciate artisanal craftsmanship, longevity, and olfactory distinction.`}
-          </p>
+            <p className="text-sm sm:text-base leading-relaxed text-brown-deep/80">
+              {product.description ||
+                `An exclusive creation by ${product.brand}, composed for connoisseurs who appreciate artisanal craftsmanship, longevity, and olfactory distinction.`}
+            </p>
+
+            {allNotes.length > 0 && (
+              <div className="border-t border-cream-border/60 pt-3">
+                <p className="text-[11px] font-mono font-bold uppercase tracking-[0.16em] text-brown-deep/60 mb-2.5">
+                  Olfactory Accords & Notes
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {allNotes.map((note) => (
+                    <span
+                      key={note}
+                      className="rounded-lg border border-cream-border bg-cream-soft px-3 py-1 text-xs font-medium text-brown-deep"
+                    >
+                      {note}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="flex flex-wrap gap-3">
             <Button

@@ -37,7 +37,7 @@ export default function AboutPage() {
 
         <div className="mt-8 flex flex-wrap gap-4">
           <Link
-            href="/shop#shop"
+            href="/shop"
             className="inline-flex h-12 items-center gap-2 rounded-xl bg-brown px-6 text-xs font-bold uppercase tracking-[0.16em] text-white hover:bg-brown-hover shadow-md transition-all"
           >
             <span>Explore Collection</span>

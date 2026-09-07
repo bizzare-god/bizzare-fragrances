@@ -1,7 +1,7 @@
 'use client';
 
-import { StorefrontView } from '@/components/store/StorefrontView';
+import { CollectionView } from '@/components/store/CollectionView';
 
 export default function ShopPage() {
-  return <StorefrontView />;
+  return <CollectionView />;
 }

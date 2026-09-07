@@ -87,16 +87,7 @@ export function Navbar({ cartCount, onOpenCart, currentUser, onSignOut }: Navbar
     const trimmed = query.trim();
     setIsMobileMenuOpen(false);
     setIsMobileSearchOpen(false);
-
-    if (pathname === '/' || pathname === '/shop') {
-      router.push(trimmed ? `/shop?q=${encodeURIComponent(trimmed)}#shop` : '/shop#shop');
-      const el = document.getElementById('shop');
-      if (el) {
-        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-      }
-    } else {
-      router.push(trimmed ? `/shop?q=${encodeURIComponent(trimmed)}#shop` : '/shop#shop');
-    }
+    router.push(trimmed ? `/shop?q=${encodeURIComponent(trimmed)}` : '/shop');
   };
 
   const handleHomeClick = (e: React.MouseEvent) => {
@@ -109,14 +100,9 @@ export function Navbar({ cartCount, onOpenCart, currentUser, onSignOut }: Navbar
 
   const handleCollectionClick = (e: React.MouseEvent) => {
     setIsMobileMenuOpen(false);
-    if (pathname === '/' || pathname === '/shop') {
+    if (pathname === '/shop') {
       e.preventDefault();
-      const el = document.getElementById('shop');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        router.push('/shop#shop');
-      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -129,7 +115,7 @@ export function Navbar({ cartCount, onOpenCart, currentUser, onSignOut }: Navbar
 
   const navLinks = [
     { label: 'Home', href: '/', onClick: handleHomeClick, active: pathname === '/' },
-    { label: 'Collection', href: '/shop#shop', onClick: handleCollectionClick, active: pathname === '/shop' },
+    { label: 'Collection', href: '/shop', onClick: handleCollectionClick, active: pathname === '/shop' },
     { label: 'About', href: '/about', active: pathname === '/about' },
     { label: 'FAQ', href: '/faq', active: pathname === '/faq' },
     { label: 'Service', href: '/customer-service', active: pathname === '/customer-service', isService: true },
@@ -323,7 +309,7 @@ export function Navbar({ cartCount, onOpenCart, currentUser, onSignOut }: Navbar
                     )}
 
                     <Link
-                      href="/shop#shop"
+                      href="/shop"
                       onClick={(e) => {
                         setIsUserMenuOpen(false);
                         handleCollectionClick(e);
@@ -464,7 +450,7 @@ export function Navbar({ cartCount, onOpenCart, currentUser, onSignOut }: Navbar
             </Link>
 
             <Link
-              href="/shop#shop"
+              href="/shop"
               onClick={handleCollectionClick}
               className={`flex items-center justify-between rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] transition-all ${
                 pathname === '/shop'

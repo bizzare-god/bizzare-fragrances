@@ -1,7 +1,7 @@
 'use client';
 
-import { StorefrontView } from '@/components/store/StorefrontView';
+import { HomeView } from '@/components/store/HomeView';
 
 export default function HomePage() {
-  return <StorefrontView />;
+  return <HomeView />;
 }

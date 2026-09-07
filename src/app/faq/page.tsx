@@ -327,7 +327,7 @@ export default function FaqPage() {
             <span>Chat on WhatsApp</span>
           </a>
           <Link
-            href="/shop#shop"
+            href="/shop"
             className="inline-flex h-11 items-center gap-2 rounded-xl border border-cream-border bg-white px-5 text-xs font-bold uppercase tracking-[0.16em] text-brown-deep hover:border-brown"
           >
             <ShoppingBag className="h-4 w-4 text-brown" />
