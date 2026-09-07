@@ -105,7 +105,7 @@ function CollectionContent() {
             The Fragrance Collection
           </h1>
           <p className="mt-3 text-sm sm:text-base leading-relaxed text-brown-deep/75 max-w-2xl">
-            Browse our complete catalogue of 100% authentic, imported luxury and niche perfumes. Filter by olfactory family, price range, or signature notes.
+            Browse the complete catalogue of 100% authentic, imported luxury and niche perfumes — Bizzare perfumes and Bizarre Fragrances, sourced from prestigious houses across France, the UAE, Italy, and the UK. Filter by olfactory family, price range, or signature notes.
           </p>
         </div>
       </div>

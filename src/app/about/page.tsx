@@ -11,6 +11,14 @@ import {
   Sparkles,
   Truck,
 } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About Bizzare Fragrances | Bizarre Perfumes Boutique',
+  description:
+    'About Bizzare (Bizarre) Fragrances: an artisanal perfumery curating 100% genuinely authentic Bizzare perfumes and Bizarre Fragrances — luxury, niche, and designer scents delivered nationwide in Nigeria.',
+  alternates: { canonical: '/about' },
+};
 
 export default function AboutPage() {
   return (

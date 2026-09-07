@@ -5,18 +5,22 @@ import { StoreProvider } from '@/components/providers/StoreProvider';
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://bizzarefragrances.shop'),
   title: {
-    default: 'Bizzare Fragrances (by Bizzare) | Artisanal Luxury Perfumery',
-    template: '%s | Bizzare Fragrances (by Bizzare)',
+    default: 'Bizzare Fragrances (by Bizzare) | Bizarre Perfumes & Fragrances Nigeria',
+    template: '%s | Bizzare Fragrances (by Bizzare) - Bizarre Perfumes Nigeria',
   },
-  description: 'Exclusive artisanal luxury perfume collection by Bizzare with secure Paystack checkout, olfactory notes clarity, and concierge support.',
+  description:
+    'Bizzare (Bizarre) Fragrances: 100% authentic imported luxury perfumes with secure Paystack checkout, olfactory notes clarity, express nationwide tracked delivery, and concierge support in Nigeria.',
   keywords: [
     'Bizzare Fragrances',
+    'Bizzare Perfumes',
+    'Bizarre Fragrances',
+    'Bizarre Perfumes',
     'Bizzare Fragrance',
-    'Haute Parfumerie',
     'Luxury Perfume Nigeria',
+    'Niche Fragrances Nigeria',
     'Oud Extrait',
     'Artisanal Perfume',
-    'Niche Fragrances',
+    'Haute Parfumerie',
   ],
   authors: [{ name: 'Bizzare' }],
   creator: 'Bizzare',
@@ -30,8 +34,9 @@ export const metadata: Metadata = {
     locale: 'en_NG',
     url: 'https://bizzarefragrances.shop',
     siteName: 'Bizzare Fragrances (by Bizzare)',
-    title: 'Bizzare Fragrances (by Bizzare) | Artisanal Luxury Perfumery',
-    description: 'Exclusive artisanal luxury perfume collection by Bizzare with secure Paystack checkout and concierge support.',
+    title: 'Bizzare Fragrances (by Bizzare) | Bizarre Perfumes & Fragrances Nigeria',
+    description:
+      'Bizzare (Bizarre) Fragrances: 100% authentic imported luxury perfumes with secure Paystack checkout and express nationwide delivery in Nigeria.',
     images: [
       {
         url: '/og-logo.png',
@@ -43,8 +48,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Bizzare Fragrances (by Bizzare)',
-    description: 'Exclusive artisanal luxury perfume collection by Bizzare.',
+    title: 'Bizzare Fragrances (by Bizzare) | Bizarre Perfumes & Fragrances Nigeria',
+    description: 'Bizzare (Bizarre) Fragrances: 100% authentic imported luxury perfumes in Nigeria.',
     images: ['/og-logo.png'],
   },
 };

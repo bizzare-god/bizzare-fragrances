@@ -129,7 +129,7 @@ export function HomeView() {
                 </span>
               </h1>
               <p className="max-w-xl text-sm sm:text-base leading-7 sm:leading-8 text-cream-light/85 pt-2">
-                Curated and directly imported from renowned international perfume houses across France, the UAE, Italy, and beyond. Explore concentrated extraits with notes clarity, escrow checkout, and express nationwide delivery.
+                Bizzare (Bizzare) Fragrances — your Nigerian home for Bizzare perfumes and Bizarre Fragrances. Curated and directly imported from renowned international perfume houses across France, the UAE, Italy, and beyond. Explore concentrated extraits with notes clarity, escrow checkout, and express nationwide delivery.
               </p>
             </div>
 
