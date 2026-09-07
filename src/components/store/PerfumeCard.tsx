@@ -27,11 +27,13 @@ export function PerfumeCard({ product, onAddToCart, index = 0 }: PerfumeCardProp
   const lowStock = product.stock > 0 && product.stock <= 3;
   const aspectClass = MASONRY_ASPECT_RATIOS[index % MASONRY_ASPECT_RATIOS.length];
 
-  const notesList = [
-    ...product.top_notes.slice(0, 2),
-    ...product.middle_notes.slice(0, 1),
-    ...product.base_notes.slice(0, 1),
-  ].filter(Boolean);
+  const notesList = Array.from(
+    new Set(
+      [...product.top_notes, ...product.middle_notes, ...product.base_notes]
+        .map((n) => n.trim())
+        .filter(Boolean)
+    )
+  );
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-cream-border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brown/40 hover:shadow-card-soft">

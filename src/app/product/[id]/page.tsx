@@ -140,7 +140,7 @@ export default function ProductDetailPage() {
           <div className="rounded-2xl border border-cream-border bg-white p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-cream-border/70 pb-3">
               <span className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-brown-warm">
-                Fragrance Profile & Notes
+                Fragrance Profile
               </span>
               <span className="font-mono text-xs font-bold text-brown bg-cream-soft px-2.5 py-0.5 rounded-full border border-cream-border">
                 {product.scent_family}
@@ -150,25 +150,10 @@ export default function ProductDetailPage() {
             <p className="text-sm sm:text-base leading-relaxed text-brown-deep/80">
               {product.description ||
                 `An exclusive creation by ${product.brand}, composed for connoisseurs who appreciate artisanal craftsmanship, longevity, and olfactory distinction.`}
+              {allNotes.length > 0
+                ? ` The fragrance wears as one seamless signature accord of ${allNotes.join(', ')}.`
+                : ''}
             </p>
-
-            {allNotes.length > 0 && (
-              <div className="border-t border-cream-border/60 pt-3">
-                <p className="text-[11px] font-mono font-bold uppercase tracking-[0.16em] text-brown-deep/60 mb-2.5">
-                  Olfactory Accords & Notes
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {allNotes.map((note) => (
-                    <span
-                      key={note}
-                      className="rounded-lg border border-cream-border bg-cream-soft px-3 py-1 text-xs font-medium text-brown-deep"
-                    >
-                      {note}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="flex flex-wrap gap-3">
