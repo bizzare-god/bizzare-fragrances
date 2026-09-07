@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Order, OrderStatus, Product, Profile, UserRole } from '@/types';
 
 const USER_CACHE_KEY = 'bf_cached_user_v2';
-const PRODUCTS_CACHE_KEY = 'bf_cached_products_v2';
+const PRODUCTS_CACHE_KEY = 'bf_cached_products_v3';
 const ORDERS_CACHE_KEY = 'bf_cached_orders_v2';
 
 async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
@@ -67,12 +67,12 @@ export function useStore() {
         requestJson<{ user: Profile | null }>('/api/auth/me').catch(() => ({ user: null })),
         requestJson<{ products: Product[] }>('/api/products').catch((error) => {
           setDataError(error instanceof Error ? error.message : 'Unable to load the boutique collection.');
-          return { products: [] };
+          return null;
         }),
       ]);
 
       const user = sessionResult?.user;
-      if (productResult.products && productResult.products.length > 0) {
+      if (productResult && Array.isArray(productResult.products)) {
         setProducts(productResult.products);
         try {
           localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(productResult.products));
