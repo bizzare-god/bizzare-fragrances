@@ -4,6 +4,7 @@ import { authConfigured, configurationError, getSessionUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { orderDto } from '@/lib/serializers';
 import { initializeOrderPayment, orderInclude } from '@/lib/orders';
+import { sendAdminOrderNotificationEmail } from '@/lib/email';
 import { rateLimit, requestIdentifier } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
@@ -115,6 +116,22 @@ export async function POST(request: NextRequest) {
         host,
         protocol,
       });
+
+      // Notify the boutique admin about the new order (fire-and-forget, never blocks checkout)
+      void sendAdminOrderNotificationEmail({
+        orderId: order.id,
+        buyerName: user.name || 'Client',
+        buyerEmail: user.email,
+        buyerPhone: order.phone,
+        totalAmount: Number(order.totalAmount),
+        items: order.items.map((item) => ({
+          name: item.product?.name || 'Fragrance',
+          quantity: item.quantity,
+          price: Number(item.priceAtPurchase),
+        })),
+        shippingAddress: order.shippingAddress,
+        notes: order.notes || undefined,
+      }).catch((err) => console.error('[Admin Order Notification Email Error]:', err));
 
       return NextResponse.json(
         {

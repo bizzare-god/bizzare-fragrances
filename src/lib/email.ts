@@ -5,6 +5,7 @@ const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 const DEFAULT_FROM = process.env.RESEND_FROM_EMAIL || 'Bizzare Fragrances <onboarding@resend.dev>';
 const SUPPORT_EMAIL = process.env.SUPPORT_FORWARD_EMAIL || 'concierge@bizzarefragrances.shop';
+const ADMIN_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || SUPPORT_EMAIL;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://bizzarefragrances.shop';
 
 interface SendOtpOptions {
@@ -35,6 +36,17 @@ interface SendOrderConfirmationOptions {
   totalAmount: number | string;
   items: OrderItemSummary[];
   shippingAddress: string;
+}
+
+interface SendAdminOrderNotificationOptions {
+  orderId: string;
+  buyerName: string;
+  buyerEmail: string;
+  buyerPhone?: string;
+  totalAmount: number | string;
+  items: OrderItemSummary[];
+  shippingAddress: string;
+  notes?: string;
 }
 
 /**
@@ -351,6 +363,138 @@ export async function sendOrderConfirmationEmail({
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown email sending error';
     console.error(`[Resend Exception sending Order Confirmation #${orderId} to ${email}]:`, err);
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Notify the boutique admin whenever a new order is placed
+ */
+export async function sendAdminOrderNotificationEmail({
+  orderId,
+  buyerName,
+  buyerEmail,
+  buyerPhone,
+  totalAmount,
+  items,
+  shippingAddress,
+  notes,
+}: SendAdminOrderNotificationOptions): Promise<{ success: boolean; error?: string }> {
+  const formattedTotal =
+    typeof totalAmount === 'number'
+      ? `₦${totalAmount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}`
+      : `₦${totalAmount}`;
+
+  const itemsHtml = items
+    .map(
+      (item) => `
+    <tr>
+      <td style="padding: 12px 0; border-bottom: 1px solid #E6DFD5; font-size: 14px; color: #1E1611;">
+        <strong>${item.name}</strong> × ${item.quantity}
+      </td>
+      <td style="padding: 12px 0; border-bottom: 1px solid #E6DFD5; text-align: right; font-family: monospace; font-size: 14px; font-weight: 600; color: #1E1611;">
+        ₦${typeof item.price === 'number' ? item.price.toLocaleString('en-NG') : item.price}
+      </td>
+    </tr>
+  `
+    )
+    .join('');
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>New Order #${orderId} - Bizzare Fragrances</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FAF8F5; margin: 0; padding: 0; color: #1E1611; }
+    .container { max-width: 580px; margin: 40px auto; background-color: #FFFFFF; border: 1px solid #E6DFD5; border-radius: 16px; overflow: hidden; }
+    .header { background-color: #1E1611; color: #FAF8F5; padding: 32px 30px; text-align: center; }
+    .logo-subtitle { font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: #C5A880; margin-bottom: 8px; font-weight: 600; }
+    .logo-title { font-family: Georgia, serif; font-size: 24px; letter-spacing: 1px; margin: 0; font-weight: normal; color: #FAF8F5; }
+    .content { padding: 32px 36px; }
+    .badge { display: inline-block; background-color: #FDF3D7; color: #8A6A1C; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px; border-radius: 6px; }
+    .order-info { margin-top: 16px; font-size: 14px; color: #7A6658; }
+    .field { margin-top: 14px; font-size: 14px; color: #1E1611; line-height: 1.5; }
+    .field-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #7A6658; font-weight: bold; display: block; margin-bottom: 3px; }
+    .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    .total-row { padding: 16px 0; font-size: 16px; font-weight: bold; color: #1E1611; border-top: 2px solid #1E1611; }
+    .address-box { background-color: #F6F3EE; border-radius: 8px; padding: 14px 16px; font-size: 13px; line-height: 1.5; color: #1E1611; margin-top: 16px; }
+    .button-container { text-align: center; margin: 28px 0 12px; }
+    .button { background-color: #1E1611; color: #FFFFFF !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; display: inline-block; }
+    .footer { background-color: #FAF8F5; border-top: 1px solid #E6DFD5; padding: 20px 36px; font-size: 12px; color: #7A6658; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo-subtitle">Maison de Haute Parfumerie</div>
+      <h1 class="logo-title">BIZZARE FRAGRANCES</h1>
+    </div>
+    <div class="content">
+      <div class="badge">Awaiting Payment Confirmation</div>
+      <h2 style="font-family: Georgia, serif; font-size: 22px; margin: 12px 0 4px; color: #1E1611;">A new order has been placed.</h2>
+      <div class="order-info">Order Reference: <strong>#${orderId}</strong></div>
+
+      <div class="field">
+        <span class="field-label">Client</span>
+        <strong>${buyerName}</strong> — <a href="mailto:${buyerEmail}" style="color: #1E1611;">${buyerEmail}</a>${
+        buyerPhone ? ` • ${buyerPhone}` : ''
+      }
+      </div>
+
+      <table class="items-table">
+        ${itemsHtml}
+        <tr>
+          <td class="total-row">Order Total</td>
+          <td class="total-row" style="text-align: right; font-family: monospace;">${formattedTotal}</td>
+        </tr>
+      </table>
+
+      <div class="address-box">
+        <strong style="text-transform: uppercase; font-size: 11px; letter-spacing: 1px; color: #7A6658; display: block; margin-bottom: 4px;">Delivery Destination</strong>
+        ${shippingAddress}
+        ${notes ? `<br><br><strong style="text-transform: uppercase; font-size: 11px; letter-spacing: 1px; color: #7A6658;">Order Notes</strong><br>${notes}` : ''}
+      </div>
+
+      <div class="button-container">
+        <a href="${APP_URL}/admin?tab=orders" class="button" target="_blank">Open Boutique Studio</a>
+      </div>
+    </div>
+    <div class="footer">
+      Bizzare Fragrances (by Bizzare)<br>
+      <a href="https://bizzarefragrances.shop" style="color: #1E1611; text-decoration: none;">bizzarefragrances.shop</a>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  if (!resend) {
+    console.warn(`[Resend Not Configured] New Order #${orderId} notification for ${ADMIN_EMAIL}`);
+    return { success: true };
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: DEFAULT_FROM,
+      to: ADMIN_EMAIL,
+      subject: `New Order #${orderId} - ₦${
+        typeof totalAmount === 'number' ? totalAmount.toLocaleString('en-NG') : totalAmount
+      } - ${buyerName}`,
+      html,
+    });
+
+    if (error) {
+      console.error(`[Resend Error sending New Order #${orderId} notification to ${ADMIN_EMAIL}]:`, error);
+      return { success: false, error: error.message };
+    }
+
+    console.log(`[Resend New Order Notification Sent] Message ID: ${data?.id} for Order #${orderId} to ${ADMIN_EMAIL}`);
+    return { success: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown email sending error';
+    console.error(`[Resend Exception sending New Order #${orderId} notification to ${ADMIN_EMAIL}]:`, err);
     return { success: false, error: message };
   }
 }
