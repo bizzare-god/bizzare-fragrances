@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowRight, Minus, Plus, ShieldCheck, ShoppingBag, Trash2, X } from 'lucide-react';
+import { ArrowRight, MapPin, Minus, Plus, ShieldCheck, ShoppingBag, Trash2, X } from 'lucide-react';
 import { Product } from '@/types';
-import { Input } from '@/components/ui/Input';
 import { formatCurrency } from '@/lib/utils';
+import { ALL_STATES, NIGERIA_STATES } from '@/lib/nigeriaLocations';
 
 export interface CartItem {
   product: Product;
@@ -28,7 +28,10 @@ export function CartDrawer({
   onRemoveItem,
   onCheckout,
 }: CartDrawerProps) {
-  const [address, setAddress] = useState('');
+  const [selectedState, setSelectedState] = useState('Lagos');
+  const [selectedCity, setSelectedCity] = useState(NIGERIA_STATES['Lagos']?.[0] || 'Ikeja');
+  const [streetAddress, setStreetAddress] = useState('');
+  const [areaLandmark, setAreaLandmark] = useState('');
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [isPlacing, setIsPlacing] = useState(false);
@@ -38,13 +41,27 @@ export function CartDrawer({
 
   const total = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
+  const handleStateChange = (stateName: string) => {
+    setSelectedState(stateName);
+    const cities = NIGERIA_STATES[stateName] || [];
+    setSelectedCity(cities[0] || '');
+  };
+
   const handleCheckoutSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!address || !phone) return;
+    if (!streetAddress.trim() || !phone.trim() || !selectedState || !selectedCity) {
+      setCheckoutError('Please fill in your complete delivery address and phone number.');
+      return;
+    }
+
+    // Format complete bespoke delivery address
+    const fullAddress = `${streetAddress.trim()}${
+      areaLandmark.trim() ? `, ${areaLandmark.trim()}` : ''
+    }, ${selectedCity}, ${selectedState} State, Nigeria`;
 
     setCheckoutError('');
     setIsPlacing(true);
-    void onCheckout(address, phone, notes)
+    void onCheckout(fullAddress, phone.trim(), notes.trim() || undefined)
       .then(() => {
         setIsPlacing(false);
         onClose();
@@ -55,10 +72,13 @@ export function CartDrawer({
       });
   };
 
+  const availableCities = NIGERIA_STATES[selectedState] || [];
+
   return (
     <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="absolute inset-y-0 right-0 flex max-w-full pl-6">
-        <div className="flex w-screen max-w-md flex-col border-l border-brown-dark bg-cream-light text-brown-deep shadow-2xl">
+        <div className="flex w-screen max-w-lg flex-col border-l border-brown-dark bg-cream-light text-brown-deep shadow-2xl">
+          {/* Header */}
           <div className="flex items-center justify-between border-b border-cream-border bg-white px-5 py-4">
             <div>
               <p className="text-[11px] uppercase tracking-[0.22em] text-brown-warm font-mono font-bold">Boutique Cart</p>
@@ -73,6 +93,7 @@ export function CartDrawer({
             </button>
           </div>
 
+          {/* Cart Items List */}
           <div className="flex-1 space-y-3 overflow-y-auto px-5 py-5">
             {items.length === 0 ? (
               <div className="flex h-full min-h-[360px] flex-col items-center justify-center text-center">
@@ -84,9 +105,16 @@ export function CartDrawer({
               </div>
             ) : (
               items.map(({ product, quantity }) => (
-                <div key={product.id} className="grid grid-cols-[72px_1fr_auto] gap-3 rounded-xl border border-cream-border bg-white p-3 shadow-sm">
+                <div
+                  key={product.id}
+                  className="grid grid-cols-[72px_1fr_auto] gap-3 rounded-xl border border-cream-border bg-white p-3 shadow-sm"
+                >
                   {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="h-[72px] w-[72px] rounded-lg object-cover border border-cream-border" />
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="h-[72px] w-[72px] rounded-lg object-cover border border-cream-border"
+                    />
                   ) : (
                     <div className="flex h-[72px] w-[72px] items-center justify-center rounded-lg bg-cream-soft text-center text-[10px] text-brown-deep/50">
                       Bottle Image
@@ -132,30 +160,120 @@ export function CartDrawer({
             )}
           </div>
 
+          {/* Delivery Details & Checkout Form */}
           {items.length > 0 && (
-            <form onSubmit={handleCheckoutSubmit} className="space-y-3 border-t border-cream-border bg-white px-5 py-5 shadow-inner">
-              <Input
-                value={address}
-                onChange={(event) => setAddress(event.target.value)}
-                required
-                placeholder="Delivery address in Nigeria"
-              />
-              <Input
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                required
-                placeholder="Recipient phone number (e.g. 08012345678)"
-              />
-              <Input
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-                placeholder="Delivery instructions (optional)"
-              />
+            <form
+              onSubmit={handleCheckoutSubmit}
+              className="space-y-3.5 border-t border-cream-border bg-white px-5 py-5 shadow-inner"
+            >
+              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brown font-mono border-b border-cream-border pb-2">
+                <MapPin className="h-3.5 w-3.5" />
+                <span>Delivery Information</span>
+              </div>
+
+              {/* State & City/LGA Selectors */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-brown-deep/70 mb-1">
+                    State *
+                  </label>
+                  <select
+                    value={selectedState}
+                    onChange={(e) => handleStateChange(e.target.value)}
+                    required
+                    className="h-10 w-full rounded-xl border border-cream-border bg-cream-soft px-2.5 text-xs font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
+                  >
+                    {ALL_STATES.map((stateName) => (
+                      <option key={stateName} value={stateName}>
+                        {stateName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-brown-deep/70 mb-1">
+                    City / Area / LGA *
+                  </label>
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => setSelectedCity(e.target.value)}
+                    required
+                    className="h-10 w-full rounded-xl border border-cream-border bg-cream-soft px-2.5 text-xs font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
+                  >
+                    {availableCities.map((cityName) => (
+                      <option key={cityName} value={cityName}>
+                        {cityName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Street Address / House Number */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-brown-deep/70 mb-1">
+                  Street Address & House / Flat No. *
+                </label>
+                <input
+                  type="text"
+                  value={streetAddress}
+                  onChange={(e) => setStreetAddress(e.target.value)}
+                  required
+                  placeholder="e.g. 14 Victoria Island Boulevard, House 3B"
+                  className="h-10 w-full rounded-xl border border-cream-border bg-cream-soft px-3 text-xs font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
+                />
+              </div>
+
+              {/* Neighborhood / Landmark */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-brown-deep/70 mb-1">
+                    Area / Nearest Landmark
+                  </label>
+                  <input
+                    type="text"
+                    value={areaLandmark}
+                    onChange={(e) => setAreaLandmark(e.target.value)}
+                    placeholder="e.g. Near Eko Hotel"
+                    className="h-10 w-full rounded-xl border border-cream-border bg-cream-soft px-3 text-xs font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
+                  />
+                </div>
+
+                {/* Recipient Phone */}
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-brown-deep/70 mb-1">
+                    Recipient Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    placeholder="0801 234 5678"
+                    className="h-10 w-full rounded-xl border border-cream-border bg-cream-soft px-3 text-xs font-medium font-mono text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
+                  />
+                </div>
+              </div>
+
+              {/* Delivery Instructions */}
+              <div>
+                <input
+                  type="text"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Special delivery notes (e.g. Leave with concierge)"
+                  className="h-9 w-full rounded-xl border border-cream-border bg-cream-soft px-3 text-[11px] text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
+                />
+              </div>
 
               {checkoutError && (
-                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{checkoutError}</p>
+                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                  {checkoutError}
+                </p>
               )}
 
+              {/* Price Breakdown & Paystack Button */}
               <div className="flex items-center justify-between border-t border-cream-border pt-3">
                 <span className="text-sm font-semibold">Total</span>
                 <span className="font-serif text-2xl font-bold text-brown">{formatCurrency(total)}</span>

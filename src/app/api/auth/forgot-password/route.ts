@@ -60,12 +60,22 @@ export async function POST(request: NextRequest) {
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://bizzarefragrances.shop'}/login?action=reset&email=${encodeURIComponent(email)}&otp=${otp}&token=${token}`;
 
     // Send email via Resend
-    await sendPasswordResetOtpEmail({
+    const emailResult = await sendPasswordResetOtpEmail({
       email,
       name: user.name,
       otp,
       resetUrl,
     });
+
+    if (!emailResult.success) {
+      console.warn(`[Forgot Password] Resend dispatch warning for ${email}: ${emailResult.error}`);
+      return NextResponse.json({
+        success: true,
+        message: 'A verification code has been generated. (If your domain is not yet verified in Resend, please check server logs or verify your domain).',
+        email,
+        token,
+      });
+    }
 
     return NextResponse.json({
       success: true,

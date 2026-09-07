@@ -4,6 +4,7 @@ import { authConfigured, configurationError, getSessionUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { orderDto } from '@/lib/serializers';
 import { initializeOrderPayment, orderInclude } from '@/lib/orders';
+import { rateLimit, requestIdentifier } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +34,14 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getSessionUser(request);
     if (!user) return NextResponse.json({ error: 'Sign in is required before checkout.' }, { status: 401 });
+
+    const limit = rateLimit(`checkout:${requestIdentifier(request, user.id)}`, 10, 10 * 60 * 1000);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many checkout attempts. Please wait a few minutes before trying again.' },
+        { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } }
+      );
+    }
 
     const body = await request.json();
     const items = (Array.isArray(body.items) ? body.items : []) as CheckoutItem[];

@@ -32,3 +32,9 @@ Thumbs.db
 
 # supabase local temp files
 supabase/.temp/
+
+# local dev/test scratch scripts (may contain secrets)
+scratch/
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo

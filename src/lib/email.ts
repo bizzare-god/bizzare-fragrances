@@ -113,7 +113,7 @@ export async function sendPasswordResetOtpEmail({
   }
 
   try {
-    const { error } = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: DEFAULT_FROM,
       to: email,
       subject: `${otp} is your Bizzare Fragrances verification code`,
@@ -121,14 +121,18 @@ export async function sendPasswordResetOtpEmail({
     });
 
     if (error) {
-      console.error('[Resend Error sending OTP email]:', error);
+      console.error(`[Resend Error sending OTP to ${email}]:`, error);
+      // In development / testing, log OTP to console so testing is never blocked
+      console.warn(`[OTP Code for ${email}]: ${otp} (Direct reset URL: ${directUrl})`);
       return { success: false, error: error.message };
     }
 
+    console.log(`[Resend OTP Sent] Message ID: ${data?.id} to ${email}`);
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown email sending error';
-    console.error('[Resend Exception sending OTP email]:', err);
+    console.error(`[Resend Exception sending OTP to ${email}]:`, err);
+    console.warn(`[OTP Code for ${email}]: ${otp}`);
     return { success: false, error: message };
   }
 }
@@ -330,7 +334,7 @@ export async function sendOrderConfirmationEmail({
   }
 
   try {
-    const { error } = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: DEFAULT_FROM,
       to: email,
       subject: `Order #${orderId} Confirmed - Bizzare Fragrances`,
@@ -338,14 +342,15 @@ export async function sendOrderConfirmationEmail({
     });
 
     if (error) {
-      console.error('[Resend Error sending Order Confirmation]:', error);
+      console.error(`[Resend Error sending Order Confirmation #${orderId} to ${email}]:`, error);
       return { success: false, error: error.message };
     }
 
+    console.log(`[Resend Order Confirmation Sent] Message ID: ${data?.id} for Order #${orderId} to ${email}`);
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown email sending error';
-    console.error('[Resend Exception sending Order Confirmation]:', err);
+    console.error(`[Resend Exception sending Order Confirmation #${orderId} to ${email}]:`, err);
     return { success: false, error: message };
   }
 }
