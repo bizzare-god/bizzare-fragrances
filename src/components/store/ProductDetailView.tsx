@@ -178,7 +178,7 @@ export function ProductDetailView({ productId }: ProductDetailViewProps) {
           <div className="grid gap-3 border-t border-cream-border pt-6 sm:grid-cols-2">
             <div className="flex items-start gap-3">
               <ShieldCheck className="mt-0.5 h-5 w-5 text-brown" />
-              <p className="text-xs leading-5 text-brown-deep/70">100% genuine imported luxury fragrance with secure Paystack checkout.</p>
+              <p className="text-xs leading-5 text-brown-deep/70">100% genuine imported luxury fragrance with secure Flutterwave checkout.</p>
             </div>
             <div className="flex items-start gap-3">
               <Sparkles className="mt-0.5 h-5 w-5 text-brown" />

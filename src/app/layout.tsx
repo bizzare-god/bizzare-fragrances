@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: '%s | Bizzare Fragrances (by Bizzare) - Bizarre Perfumes Nigeria',
   },
   description:
-    'Bizzare (Bizarre) Fragrances: 100% authentic imported luxury perfumes with secure Paystack checkout, olfactory notes clarity, express nationwide tracked delivery, and concierge support in Nigeria.',
+    'Bizzare (Bizarre) Fragrances: 100% authentic imported luxury perfumes with secure Flutterwave checkout, olfactory notes clarity, express nationwide tracked delivery, and concierge support in Nigeria.',
   keywords: [
     'Bizzare Fragrances',
     'Bizzare Perfumes',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     siteName: 'Bizzare Fragrances (by Bizzare)',
     title: 'Bizzare Fragrances (by Bizzare) | Bizarre Perfumes & Fragrances Nigeria',
     description:
-      'Bizzare (Bizarre) Fragrances: 100% authentic imported luxury perfumes with secure Paystack checkout and express nationwide delivery in Nigeria.',
+      'Bizzare (Bizarre) Fragrances: 100% authentic imported luxury perfumes with secure Flutterwave checkout and express nationwide delivery in Nigeria.',
     images: [
       {
         url: '/og-logo.png',

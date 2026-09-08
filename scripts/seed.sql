@@ -1,6 +1,6 @@
 -- Seed: Bizzare Fragrances store catalog
 -- Idempotent: categories upsert by name; products upsert by fixed seed id.
--- Prices are in Nigerian Naira (NGN); Paystack converts *100 to kobo.
+-- Prices are in Nigerian Naira (NGN); Flutterwave charges in the main currency unit (naira).
 
 -- Categories (collections)
 INSERT INTO "Category" (id, name)

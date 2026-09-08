@@ -18,7 +18,7 @@ export function Footer() {
             </div>
           </div>
           <p className="mt-4 max-w-sm text-xs leading-6 text-cream-muted/80">
-            Artisanal haute parfumerie, pure extraits, secure Paystack checkout, and boutique-direct fulfillment across Nigeria.
+            Artisanal haute parfumerie, pure extraits, secure Flutterwave checkout, and boutique-direct fulfilment across Nigeria.
           </p>
           <div className="mt-5 space-y-2 text-xs">
             <a
@@ -102,7 +102,7 @@ export function Footer() {
         <div>
           <h4 className="text-xs font-bold uppercase tracking-[0.22em] text-white">Buyer Promise</h4>
           <ul className="mt-4 space-y-3 text-xs">
-            <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-brown-warm shrink-0" /> Secure Paystack checkout</li>
+            <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-brown-warm shrink-0" /> Secure Flutterwave checkout</li>
             <li className="flex items-center gap-2"><Truck className="h-4 w-4 text-brown-warm shrink-0" /> Tracked boutique fulfillment</li>
             <li className="flex items-center gap-2"><Headphones className="h-4 w-4 text-brown-warm shrink-0" /> Concierge scent guidance</li>
           </ul>

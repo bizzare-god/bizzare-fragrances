@@ -1,6 +1,6 @@
 import { prisma } from '../src/lib/db';
 import { initializeOrderPayment, markOrderPaid } from '../src/lib/orders';
-import { verifyPaystackWebhookSignature } from '../src/lib/paystack';
+import { verifyFlutterwaveWebhookSignature } from '../src/lib/flutterwave';
 import { rateLimit } from '../src/lib/rateLimit';
 import { OrderStatus, PaymentStatus, UserRole } from '@prisma/client';
 
@@ -21,9 +21,9 @@ async function runTests() {
     throw new Error('Rate limiter test failed.');
   }
 
-  // 2. Test Paystack Fail-Closed / Sandbox Security
-  console.log('\n[2] Testing Paystack Gateway & Webhook Signature:');
-  const dummySignature = verifyPaystackWebhookSignature('{"test":true}', 'invalidsig');
+  // 2. Test Flutterwave Fail-Closed / Signature Security
+  console.log('\n[2] Testing Flutterwave Gateway & Webhook Signature:');
+  const dummySignature = verifyFlutterwaveWebhookSignature('{"test":true}', { verifHash: 'invalidsig' });
   console.log('Unconfigured / invalid signature rejected (should be false):', dummySignature);
   if (!dummySignature) {
     console.log('✅ Webhook signature fails closed as expected.');
@@ -79,7 +79,8 @@ async function runTests() {
   // Test markOrderPaid (First call)
   const paidResult1 = await markOrderPaid(testRef, {
     reference: testRef,
-    amountKobo: Math.round(Number(testOrder.totalAmount) * 100),
+    amountPaid: Number(testOrder.totalAmount),
+    amountUnit: 'naira',
     actorId: buyer.id,
     actorName: buyer.name,
   });
@@ -91,7 +92,8 @@ async function runTests() {
   // Test markOrderPaid (Second concurrent call - Idempotency test)
   const paidResult2 = await markOrderPaid(testRef, {
     reference: testRef,
-    amountKobo: Math.round(Number(testOrder.totalAmount) * 100),
+    amountPaid: Number(testOrder.totalAmount),
+    amountUnit: 'naira',
     actorId: buyer.id,
     actorName: buyer.name,
   });

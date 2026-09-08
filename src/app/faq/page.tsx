@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { FaqView } from '@/components/store/FaqView';
 
 export const metadata: Metadata = {
-  title: 'FAQ - Perfume Delivery, Longevity & Paystack Questions | Bizzare Fragrances',
+  title: 'FAQ - Perfume Delivery, Longevity & Payments Questions | Bizzare Fragrances',
   description:
-    'Bizzare (Bizarre) Fragrances FAQ: delivery timelines across Nigeria, fragrance concentration & longevity, sold-out editions, Paystack payment security, authenticity and returns.',
+    'Bizzare (Bizarre) Fragrances FAQ: delivery timelines across Nigeria, fragrance concentration & longevity, sold-out editions, Flutterwave payment security, authenticity and returns.',
   alternates: { canonical: '/faq' },
 };
 

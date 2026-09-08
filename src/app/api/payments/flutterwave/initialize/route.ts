@@ -53,10 +53,10 @@ export async function POST(request: NextRequest) {
       reference: paymentResult.reference,
     });
   } catch (error) {
-    console.error('Error initializing Paystack transaction:', error);
+    console.error('Error initializing Flutterwave transaction:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unable to initialize payment.' },
-      { status: 500 }
+      { status: 400 }
     );
   }
 }

@@ -33,7 +33,7 @@ const FAQ_DATA: FaqItem[] = [
     category: 'Ordering & Delivery',
     question: 'Where do you source your fragrances and how does ordering & dispatch work?',
     answer:
-      'All our perfumes are 100% genuine, authentic luxury and niche fragrances imported directly from reputable perfume houses, certified distributors, and perfumeries across France, the UAE / Middle East, Italy, the UK, and beyond. Once you place an order via Paystack, our boutique team inspects the manufacturer seals and packaging, prepares your order with bespoke protective care, and dispatches it via express tracked courier directly to your doorstep across Nigeria.',
+      'All our perfumes are 100% genuine, authentic luxury and niche fragrances imported directly from reputable perfume houses, certified distributors, and perfumeries across France, the UAE / Middle East, Italy, the UK, and beyond. Once you place an order via Flutterwave, our boutique team inspects the manufacturer seals and packaging, prepares your order with bespoke protective care, and dispatches it via express tracked courier directly to your doorstep across Nigeria.',
   },
   {
     id: 'delivery-timeline',
@@ -87,23 +87,23 @@ const FAQ_DATA: FaqItem[] = [
   {
     id: 'payment-methods',
     category: 'Payment & Security',
-    question: 'What payment methods are supported via Paystack?',
+    question: 'What payment methods are supported via Flutterwave?',
     answer:
-      'Paystack is our official secure checkout gateway supporting all Nigerian debit/credit cards (Mastercard, Visa, Verve), Direct Bank Transfers, USSD, and Apple Pay. All transactions are securely encrypted and settled in Nigerian Naira (NGN).',
+      'Flutterwave is our official secure checkout gateway supporting all Nigerian debit/credit cards (Mastercard, Visa, Verve), Direct Bank Transfers, USSD, and mobile money. All transactions are securely encrypted and settled in Nigerian Naira (NGN).',
   },
   {
     id: 'payment-security',
     category: 'Payment & Security',
     question: 'Is my financial and payment information secure?',
     answer:
-      'Yes, 100%. We utilize Paystack’s PCI-DSS Level 1 certified checkout infrastructure with end-to-end tokenization. Bizzare Fragrances never stores your card details, CVV, or banking PINs.',
+      'Yes, 100%. We utilize Flutterwave’s PCI-DSS Level 1 certified checkout infrastructure with end-to-end tokenization. Bizzare Fragrances never stores your card details, CVV, or banking PINs.',
   },
   {
     id: 'payment-unconfirmed',
     category: 'Payment & Security',
     question: 'What should I do if my bank account was debited but my order shows pending?',
     answer:
-      'In rare cases of bank network delays, your order will automatically confirm as soon as the Paystack webhook completes. If you need immediate confirmation, simply send your Paystack reference or debit alert to concierge@bizzarefragrances.shop or WhatsApp +234 911 474 3607 for instant manual verification.',
+      'In rare cases of bank network delays, your order will automatically confirm as soon as the Flutterwave webhook completes. If you need immediate confirmation, simply send your Flutterwave reference or debit alert to concierge@bizzarefragrances.shop or WhatsApp +234 911 474 3607 for instant manual verification.',
   },
   {
     id: 'authenticity-returns',
@@ -186,7 +186,7 @@ export function FaqView() {
           Answers & Guidance for Clients
         </h1>
         <p className="mt-4 text-base leading-8 text-brown-deep/75">
-          Everything you need to know about our artisanal extraits, nationwide delivery, secure Paystack checkout, and boutique customer service.
+          Everything you need to know about our artisanal extraits, nationwide delivery, secure Flutterwave checkout, and boutique customer service.
         </p>
       </div>
 
@@ -196,7 +196,7 @@ export function FaqView() {
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search questions by topic (e.g. delivery, Paystack, longevity, tracking)..."
+          placeholder="Search questions by topic (e.g. delivery, payments, longevity, tracking)..."
           className="h-12 w-full rounded-2xl border border-cream-border bg-white pl-12 pr-10 text-sm font-medium text-brown-deep placeholder:text-brown-deep/40 shadow-sm focus:border-brown focus:outline-none focus:ring-1 focus:ring-brown"
         />
         {searchQuery && (

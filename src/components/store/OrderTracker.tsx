@@ -193,7 +193,7 @@ export function OrderTracker({ order }: OrderTrackerProps) {
                 Awaiting Secure Payment
               </p>
               <p className="text-xs text-amber-800/80 mt-0.5">
-                Complete checkout via Paystack to dispatch this fragrance collection for boutique preparation.
+                Complete checkout via Flutterwave to dispatch this fragrance collection for boutique preparation.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -212,7 +212,7 @@ export function OrderTracker({ order }: OrderTrackerProps) {
                 {isProcessingPayment ? (
                   <>
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    <span>Connecting Paystack...</span>
+                    <span>Connecting Flutterwave...</span>
                   </>
                 ) : (
                   <>

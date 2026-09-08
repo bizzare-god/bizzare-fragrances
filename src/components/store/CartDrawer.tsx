@@ -273,7 +273,7 @@ export function CartDrawer({
                 </p>
               )}
 
-              {/* Price Breakdown & Paystack Button */}
+              {/* Price Breakdown & Checkout Button */}
               <div className="flex items-center justify-between border-t border-cream-border pt-3">
                 <span className="text-sm font-semibold">Total</span>
                 <span className="font-serif text-2xl font-bold text-brown">{formatCurrency(total)}</span>
@@ -284,13 +284,13 @@ export function CartDrawer({
                 disabled={isPlacing}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brown px-5 text-sm font-bold uppercase tracking-[0.16em] text-white hover:bg-brown-hover disabled:opacity-60 shadow-md transition-all"
               >
-                <span>{isPlacing ? 'Initializing Paystack...' : 'Checkout with Paystack'}</span>
+                <span>{isPlacing ? 'Initializing Flutterwave Checkout...' : 'Proceed to Secure Checkout'}</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
 
               <p className="flex items-center justify-center gap-2 text-center text-xs text-brown-deep/55">
                 <ShieldCheck className="h-3.5 w-3.5 text-brown" />
-                Direct Boutique Fulfillment & Paystack Checkout (NGN)
+                Direct Boutique Fulfillment & Flutterwave Secure Checkout (NGN)
               </p>
             </form>
           )}

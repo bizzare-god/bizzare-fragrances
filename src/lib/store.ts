@@ -187,21 +187,21 @@ export function useStore() {
       authorization_url: string;
       access_code: string;
       reference: string;
-    }>('/api/payments/paystack/initialize', {
+    }>('/api/payments/flutterwave/initialize', {
       method: 'POST',
       body: JSON.stringify({ order_id: orderId }),
     });
     return result;
   }, []);
 
-  const verifyPayment = useCallback(async (reference: string) => {
+  const verifyPayment = useCallback(async (reference: string, transactionId?: string | number | null) => {
     const result = await requestJson<{
       success: boolean;
       message: string;
       order: Order;
-    }>('/api/payments/paystack/verify', {
+    }>('/api/payments/flutterwave/verify', {
       method: 'POST',
-      body: JSON.stringify({ reference }),
+      body: JSON.stringify({ reference, transaction_id: transactionId ?? undefined }),
     });
     await refreshStore();
     return result.order;

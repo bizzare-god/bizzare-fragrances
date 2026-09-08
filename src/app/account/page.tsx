@@ -30,7 +30,8 @@ function AccountContent() {
   } | null>(null);
 
   const processedRef = useRef<string | null>(null);
-  const reference = searchParams.get('reference');
+  const reference = searchParams.get('reference') ?? searchParams.get('tx_ref');
+  const transactionId = searchParams.get('transaction_id');
 
   useEffect(() => {
     if (!reference || processedRef.current === reference) return;
@@ -38,7 +39,7 @@ function AccountContent() {
 
     setPaymentBanner({
       type: 'loading',
-      message: 'Verifying your payment with Paystack...',
+      message: 'Verifying your payment with Flutterwave...',
     });
 
     // Remove reference query parameter from URL immediately in browser
@@ -46,7 +47,7 @@ function AccountContent() {
       window.history.replaceState({}, '', '/account');
     }
 
-    verifyPayment(reference)
+    verifyPayment(reference, transactionId)
       .then(() => {
         clearCart();
         setPaymentBanner({
@@ -60,7 +61,7 @@ function AccountContent() {
           message: err instanceof Error ? err.message : 'Payment verification could not be confirmed. Please check order status below.',
         });
       });
-  }, [reference, verifyPayment, clearCart]);
+  }, [reference, transactionId, verifyPayment, clearCart]);
 
   if (isLoading) {
     return (

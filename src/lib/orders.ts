@@ -1,6 +1,6 @@
 import { OrderStatus, PaymentStatus } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { initializePaystackTransaction } from '@/lib/paystack';
+import { initializeFlutterwaveTransaction } from '@/lib/flutterwave';
 import { invalidateProductCache } from '@/lib/cache';
 import { recordAuditLog } from '@/lib/audit';
 import { sendOrderConfirmationEmail } from '@/lib/email';
@@ -42,22 +42,33 @@ export async function initializeOrderPayment({
 
   const reference = order.paymentReference || `bf_${order.id.slice(-8)}_${Date.now()}`;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`;
-  const callbackUrl = `${baseUrl.replace(/\/+$/, '')}/account?reference=${reference}`;
+  const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
+  const redirectUrl = `${cleanBaseUrl}/account?reference=${encodeURIComponent(reference)}`;
 
-  const paystackResult = await initializePaystackTransaction({
-    email: order.buyer.email || user.email,
+  const flutterwaveResult = await initializeFlutterwaveTransaction({
+    txRef: reference,
     amount: Number(order.totalAmount),
-    reference,
-    callbackUrl,
-    metadata: {
+    currency: 'NGN',
+    redirectUrl,
+    customer: {
+      email: order.buyer.email || user.email,
+      name: order.buyer.name || user.name,
+      phonenumber: order.phone || undefined,
+    },
+    customizations: {
+      title: 'Bizzare Fragrances',
+      description: 'Luxury fragrance acquisition',
+      logo: `${cleanBaseUrl}/icon.png`,
+    },
+    meta: {
       orderId: order.id,
       buyerId: user.id,
       buyerName: user.name,
     },
   });
 
-  if (!paystackResult.status || !paystackResult.data) {
-    throw new Error(paystackResult.message || 'Failed to initialize payment gateway.');
+  if (flutterwaveResult.status !== 'success' || !flutterwaveResult.data?.link) {
+    throw new Error(flutterwaveResult.message || 'Failed to initialize payment gateway.');
   }
 
   // Update order references in database
@@ -65,20 +76,21 @@ export async function initializeOrderPayment({
     where: { id: order.id },
     data: {
       paymentReference: reference,
-      paystackReference: paystackResult.data.reference,
+      paystackReference: reference,
     },
   });
 
   return {
-    authorization_url: paystackResult.data.authorization_url,
-    access_code: paystackResult.data.access_code,
-    reference: paystackResult.data.reference,
+    authorization_url: flutterwaveResult.data.link,
+    access_code: flutterwaveResult.data.id ? String(flutterwaveResult.data.id) : '',
+    reference,
   };
 }
 
 export interface MarkOrderPaidMeta {
   reference: string;
-  amountKobo?: number;
+  amountPaid?: number;
+  amountUnit?: 'naira' | 'kobo';
   channel?: string;
   paidAt?: Date;
   actorId?: string;
@@ -105,12 +117,13 @@ export async function markOrderPaid(orderIdOrRef: string, meta: MarkOrderPaidMet
     throw new Error('Order not found for this payment reference.');
   }
 
-  // Verify amount matches expected order total if amountKobo provided
-  if (meta.amountKobo !== undefined && meta.amountKobo > 0) {
-    const expectedKobo = Math.round(Number(order.totalAmount) * 100);
-    if (Math.abs(meta.amountKobo - expectedKobo) >= 100) {
+  // Verify amount matches expected order total if amountPaid provided (naira by default)
+  if (meta.amountPaid !== undefined && meta.amountPaid > 0) {
+    const expectedNaira = Number(order.totalAmount);
+    const receivedNaira = meta.amountUnit === 'kobo' ? meta.amountPaid / 100 : meta.amountPaid;
+    if (Math.abs(receivedNaira - expectedNaira) >= 1) {
       console.warn(
-        `Payment amount mismatch for order ${order.id}: expected ${expectedKobo} kobo, received ${meta.amountKobo} kobo.`
+        `Payment amount mismatch for order ${order.id}: expected ${expectedNaira} NGN, received ${receivedNaira} NGN.`
       );
       throw new Error('Payment amount verification mismatch.');
     }
@@ -170,7 +183,7 @@ export async function markOrderPaid(orderIdOrRef: string, meta: MarkOrderPaidMet
 
   await recordAuditLog({
     actorId: meta.actorId,
-    actorName: meta.actorName || 'Paystack Gateway',
+    actorName: meta.actorName || 'Flutterwave Gateway',
     action: meta.actionSource || 'PAYMENT_VERIFIED',
     targetType: 'Order',
     targetId: updatedOrder.id,

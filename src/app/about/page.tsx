@@ -39,7 +39,7 @@ export default function AboutPage() {
             Our collection is strictly edited around concentrated, memorable scents: pure oud, velvet Damask rose, smoked amber, radiant Mediterranean citrus, rich bourbon vanilla, sacred woods, and clean skin musks.
           </p>
           <p>
-            We believe in direct simplicity for our clients: an unhurried browsing experience, complete olfactory note clarity, secure Paystack escrow checkout, and boutique-direct fulfillment with real-time tracking to doorsteps nationwide across Nigeria.
+            We believe in direct simplicity for our clients: an unhurried browsing experience, complete olfactory note clarity, secure Flutterwave checkout, and boutique-direct fulfillment with real-time tracking to doorsteps nationwide across Nigeria.
           </p>
         </div>
 

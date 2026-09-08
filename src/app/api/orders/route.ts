@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       include: orderInclude,
     });
 
-    // Initialize Paystack payment
+    // Initialize Flutterwave payment
     const host = request.headers.get('host') || 'localhost:3000';
     const protocol = request.headers.get('x-forwarded-proto') || 'http';
 
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
         { status: 201 }
       );
     } catch (paymentErr) {
-      console.error('Failed to initialize Paystack transaction on checkout:', paymentErr);
+      console.error('Failed to initialize Flutterwave transaction on checkout:', paymentErr);
       await prisma.order.delete({ where: { id: order.id } }).catch(() => null);
       return NextResponse.json(
         { error: paymentErr instanceof Error ? paymentErr.message : 'Unable to initialize payment gateway.' },

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authConfigured, configurationError, getSessionUser } from '@/lib/auth';
-import { verifyPaystackTransaction } from '@/lib/paystack';
+import { verifyFlutterwaveTransaction, verifyFlutterwaveTransactionByReference } from '@/lib/flutterwave';
 import { orderDto } from '@/lib/serializers';
 import { markOrderPaid } from '@/lib/orders';
 import { rateLimit, requestIdentifier } from '@/lib/rateLimit';
@@ -23,26 +23,44 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => ({}));
     const reference = typeof body.reference === 'string' ? body.reference.trim() : '';
+    const transactionIdRaw = body.transaction_id;
+    const transactionId =
+      typeof transactionIdRaw === 'string' && transactionIdRaw.trim()
+        ? transactionIdRaw.trim()
+        : typeof transactionIdRaw === 'number'
+          ? transactionIdRaw
+          : null;
 
-    if (!reference) {
-      return NextResponse.json({ error: 'Payment reference is required.' }, { status: 400 });
+    if (!reference && transactionId === null) {
+      return NextResponse.json({ error: 'Payment reference or transaction ID is required.' }, { status: 400 });
     }
 
-    // Verify transaction with Paystack
-    const paystackResult = await verifyPaystackTransaction(reference);
-    if (!paystackResult.status || paystackResult.data?.status !== 'success') {
+    // Verify the transaction state with Flutterwave (transaction ID takes precedence)
+    const flutterwaveResult = transactionId !== null
+      ? await verifyFlutterwaveTransaction(transactionId)
+      : await verifyFlutterwaveTransactionByReference(reference);
+
+    if (
+      flutterwaveResult.status !== 'success' ||
+      !flutterwaveResult.data ||
+      flutterwaveResult.data.status !== 'successful'
+    ) {
       return NextResponse.json(
-        { error: paystackResult.message || 'Payment verification failed with Paystack.' },
+        { error: flutterwaveResult.message || 'Payment verification failed with Flutterwave.' },
         { status: 400 }
       );
     }
 
+    const txRef = flutterwaveResult.data.tx_ref || reference;
+    const orderRef = reference || txRef;
+
     // Atomically mark order paid and update inventory safely
-    const result = await markOrderPaid(reference, {
-      reference,
-      amountKobo: paystackResult.data.amount,
-      channel: paystackResult.data.channel,
-      paidAt: paystackResult.data.paid_at ? new Date(paystackResult.data.paid_at) : new Date(),
+    const result = await markOrderPaid(orderRef, {
+      reference: txRef,
+      amountPaid: Number(flutterwaveResult.data.amount),
+      amountUnit: 'naira',
+      channel: flutterwaveResult.data.payment_type,
+      paidAt: flutterwaveResult.data.created_at ? new Date(flutterwaveResult.data.created_at) : new Date(),
       actorId: user.id,
       actorName: user.name,
       actionSource: 'PAYMENT_VERIFIED',
@@ -56,10 +74,10 @@ export async function POST(request: NextRequest) {
       order: orderDto(result.order),
     });
   } catch (error) {
-    console.error('Error verifying Paystack payment:', error);
+    console.error('Error verifying Flutterwave payment:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unable to verify payment.' },
-      { status: 500 }
+      { status: 400 }
     );
   }
 }
