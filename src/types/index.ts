@@ -26,6 +26,11 @@ export interface Profile {
   phone?: string;
   role: UserRole;
   avatar_url?: string;
+  shipping_state?: string;
+  shipping_city?: string;
+  shipping_street?: string;
+  shipping_landmark?: string;
+  shipping_phone?: string;
   created_at: string;
   updated_at: string;
 }

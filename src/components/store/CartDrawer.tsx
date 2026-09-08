@@ -17,7 +17,22 @@ interface CartDrawerProps {
   items: CartItem[];
   onUpdateQuantity: (productId: string, delta: number) => void;
   onRemoveItem: (productId: string) => void;
-  onCheckout: (address: string, phone: string, notes?: string) => Promise<void>;
+  savedAddress?: {
+    state?: string;
+    city?: string;
+    street?: string;
+    landmark?: string;
+    phone?: string;
+  } | null;
+  onCheckout: (details: {
+    address: string;
+    state: string;
+    city: string;
+    street: string;
+    landmark: string;
+    phone: string;
+    notes?: string;
+  }) => Promise<void>;
 }
 
 export function CartDrawer({
@@ -26,22 +41,53 @@ export function CartDrawer({
   items,
   onUpdateQuantity,
   onRemoveItem,
+  savedAddress,
   onCheckout,
 }: CartDrawerProps) {
-  const [selectedState, setSelectedState] = useState('Lagos');
-  const [selectedCity, setSelectedCity] = useState(NIGERIA_STATES['Lagos']?.[0] || 'Ikeja');
-  const [streetAddress, setStreetAddress] = useState('');
-  const [areaLandmark, setAreaLandmark] = useState('');
-  const [phone, setPhone] = useState('');
+  const [selectedState, setSelectedState] = useState(savedAddress?.state || 'Lagos');
+  const [selectedCity, setSelectedCity] = useState(
+    () => {
+      const savedCity = savedAddress?.city;
+      if (savedAddress?.state && savedCity && NIGERIA_STATES[savedAddress.state]?.includes(savedCity)) {
+        return savedCity;
+      }
+      return NIGERIA_STATES[savedAddress?.state || 'Lagos']?.[0] || 'Ikeja';
+    }
+  );
+  const [streetAddress, setStreetAddress] = useState(savedAddress?.street || '');
+  const [areaLandmark, setAreaLandmark] = useState(savedAddress?.landmark || '');
+  const [phone, setPhone] = useState(savedAddress?.phone || '');
   const [notes, setNotes] = useState('');
   const [isPlacing, setIsPlacing] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
+  const hasEditedRef = React.useRef(false);
+
+  const markEdited = (setter: React.Dispatch<React.SetStateAction<string>>) => (value: string) => {
+    hasEditedRef.current = true;
+    setter(value);
+  };
+
+  // Fill in the client's last-used delivery details when they become available
+  React.useEffect(() => {
+    if (!savedAddress || hasEditedRef.current) return;
+    if (savedAddress.state) {
+      setSelectedState(savedAddress.state);
+      setSelectedCity((prev) => {
+        const cities = NIGERIA_STATES[savedAddress.state || ''] || [];
+        return savedAddress.city && cities.includes(savedAddress.city) ? savedAddress.city : cities[0] || prev;
+      });
+    }
+    if (savedAddress.street) setStreetAddress(savedAddress.street);
+    if (savedAddress.landmark) setAreaLandmark(savedAddress.landmark);
+    if (savedAddress.phone) setPhone(savedAddress.phone);
+  }, [savedAddress]);
 
   if (!isOpen) return null;
 
   const total = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
   const handleStateChange = (stateName: string) => {
+    hasEditedRef.current = true;
     setSelectedState(stateName);
     const cities = NIGERIA_STATES[stateName] || [];
     setSelectedCity(cities[0] || '');
@@ -54,14 +100,24 @@ export function CartDrawer({
       return;
     }
 
+    const street = streetAddress.trim();
+    const landmark = areaLandmark.trim();
+    const cleanPhone = phone.trim();
+
     // Format complete bespoke delivery address
-    const fullAddress = `${streetAddress.trim()}${
-      areaLandmark.trim() ? `, ${areaLandmark.trim()}` : ''
-    }, ${selectedCity}, ${selectedState} State, Nigeria`;
+    const fullAddress = `${street}${landmark ? `, ${landmark}` : ''}, ${selectedCity}, ${selectedState} State, Nigeria`;
 
     setCheckoutError('');
     setIsPlacing(true);
-    void onCheckout(fullAddress, phone.trim(), notes.trim() || undefined)
+    void onCheckout({
+      address: fullAddress,
+      state: selectedState,
+      city: selectedCity,
+      street,
+      landmark,
+      phone: cleanPhone,
+      notes: notes.trim() || undefined,
+    })
       .then(() => {
         setIsPlacing(false);
         onClose();
@@ -197,7 +253,7 @@ export function CartDrawer({
                   </label>
                   <select
                     value={selectedCity}
-                    onChange={(e) => setSelectedCity(e.target.value)}
+                    onChange={(e) => markEdited(setSelectedCity)(e.target.value)}
                     required
                     className="h-10 w-full rounded-xl border border-cream-border bg-cream-soft px-2.5 text-xs font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
                   >
@@ -218,7 +274,7 @@ export function CartDrawer({
                 <input
                   type="text"
                   value={streetAddress}
-                  onChange={(e) => setStreetAddress(e.target.value)}
+                  onChange={(e) => markEdited(setStreetAddress)(e.target.value)}
                   required
                   placeholder="e.g. 14 Victoria Island Boulevard, House 3B"
                   className="h-10 w-full rounded-xl border border-cream-border bg-cream-soft px-3 text-xs font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
@@ -234,7 +290,7 @@ export function CartDrawer({
                   <input
                     type="text"
                     value={areaLandmark}
-                    onChange={(e) => setAreaLandmark(e.target.value)}
+                    onChange={(e) => markEdited(setAreaLandmark)(e.target.value)}
                     placeholder="e.g. Near Eko Hotel"
                     className="h-10 w-full rounded-xl border border-cream-border bg-cream-soft px-3 text-xs font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
                   />
@@ -248,7 +304,7 @@ export function CartDrawer({
                   <input
                     type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => markEdited(setPhone)(e.target.value)}
                     required
                     placeholder="0801 234 5678"
                     className="h-10 w-full rounded-xl border border-cream-border bg-cream-soft px-3 text-xs font-medium font-mono text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
@@ -261,7 +317,7 @@ export function CartDrawer({
                 <input
                   type="text"
                   value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  onChange={(e) => markEdited(setNotes)(e.target.value)}
                   placeholder="Special delivery notes (e.g. Leave with concierge)"
                   className="h-9 w-full rounded-xl border border-cream-border bg-cream-soft px-3 text-[11px] text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
                 />

@@ -27,6 +27,7 @@ import {
   Loader2,
   Trash2,
   UploadCloud,
+  Pencil,
   X,
 } from 'lucide-react';
 
@@ -72,8 +73,9 @@ export function AdminDashboardView({
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('ALL');
 
-  // Add Product Form State
+  // Add/Edit Product Form State
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formName, setFormName] = useState('');
   const [formBrand, setFormBrand] = useState('Bizzare Fragrance');
@@ -155,12 +157,41 @@ export function AdminDashboardView({
     });
   }, [orders, orderStatusFilter]);
 
+  const resetProductForm = () => {
+    setFormName('');
+    setFormBrand('Bizzare Fragrance');
+    setFormScentFamily('Woody');
+    setFormPrice('');
+    setFormStock('15');
+    setFormVolume('100');
+    setFormDescription('');
+    setFormNotes('');
+    setFormImage('');
+    setFormImageError('');
+    setEditingProduct(null);
+  };
+
+  const openEditModal = (product: Product) => {
+    setEditingProduct(product);
+    setFormName(product.name);
+    setFormBrand(product.brand || 'Bizzare Fragrance');
+    setFormScentFamily(product.scent_family);
+    setFormPrice(String(product.price));
+    setFormStock(String(product.stock));
+    setFormVolume(String(product.volume_ml));
+    setFormImage(product.image_url || '');
+    setFormDescription(product.description || '');
+    setFormNotes(product.top_notes?.join(', ') || '');
+    setFormImageError('');
+    setShowAddModal(true);
+  };
+
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName || !formPrice || !formStock) return;
     setIsSubmitting(true);
     try {
-      await onAddProduct({
+      const payload = {
         name: formName.trim(),
         brand: formBrand.trim() || 'Bizzare Fragrance',
         scent_family: formScentFamily,
@@ -172,22 +203,28 @@ export function AdminDashboardView({
         top_notes: formNotes ? formNotes.split(',').map((s) => s.trim()).filter(Boolean) : [],
         middle_notes: [],
         base_notes: [],
-        is_active: true,
-      });
+        is_active: editingProduct ? editingProduct.is_active : true,
+      };
+
+      if (editingProduct) {
+        await onUpdateProduct(editingProduct.id, payload);
+      } else {
+        await onAddProduct(payload);
+      }
       await reloadCatalog();
       setShowAddModal(false);
-      setFormName('');
-      setFormPrice('');
-      setFormStock('15');
-      setFormDescription('');
-      setFormNotes('');
-      setFormImage('');
+      resetProductForm();
       setFormImageError('');
     } catch (err) {
-      console.error('Failed to create fragrance:', err);
+      console.error('Failed to save fragrance:', err);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const closeProductModal = () => {
+    setShowAddModal(false);
+    resetProductForm();
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -571,7 +608,10 @@ export function AdminDashboardView({
                 </button>
                 <Button
                   size="sm"
-                  onClick={() => setShowAddModal(true)}
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setShowAddModal(true);
+                  }}
                   className="gap-1.5 text-xs font-bold"
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -766,6 +806,16 @@ export function AdminDashboardView({
                         <div className="flex items-center justify-end gap-2">
                           <Button
                             size="sm"
+                            variant="ghost"
+                            onClick={() => openEditModal(product)}
+                            className="gap-1 text-xs font-bold text-brown hover:bg-cream-soft"
+                            aria-label={`Edit ${product.name}`}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
                             variant={product.is_active ? 'danger' : 'default'}
                             onClick={() => void handleUpdateProduct(product.id, { is_active: !product.is_active })}
                             className="text-xs font-bold"
@@ -888,12 +938,18 @@ export function AdminDashboardView({
           <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-cream-border bg-white p-6 shadow-2xl sm:p-8">
             <div className="flex items-center justify-between border-b border-cream-border pb-4">
               <div>
-                <h3 className="font-serif text-xl font-bold text-brown-deep">Add New Fragrance</h3>
-                <p className="text-xs text-brown-deep/60">Introduce a new bespoke creation to the Bizzare collection.</p>
+                <h3 className="font-serif text-xl font-bold text-brown-deep">
+                  {editingProduct ? 'Edit Fragrance' : 'Add New Fragrance'}
+                </h3>
+                <p className="text-xs text-brown-deep/60">
+                  {editingProduct
+                    ? 'Update this bespoke creation in the Bizzare collection.'
+                    : 'Introduce a new bespoke creation to the Bizzare collection.'}
+                </p>
               </div>
               <button
                 type="button"
-                onClick={() => setShowAddModal(false)}
+                onClick={closeProductModal}
                 className="rounded-lg p-1.5 text-brown-deep/60 hover:bg-cream-soft hover:text-brown-deep"
               >
                 ✕
@@ -1053,7 +1109,7 @@ export function AdminDashboardView({
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setShowAddModal(false)}
+                  onClick={closeProductModal}
                 >
                   Cancel
                 </Button>
@@ -1062,7 +1118,13 @@ export function AdminDashboardView({
                   disabled={isSubmitting}
                   className="gap-2 font-bold"
                 >
-                  {isSubmitting ? 'Adding Fragrance...' : 'Publish Fragrance'}
+                  {isSubmitting
+                    ? editingProduct
+                      ? 'Saving Changes...'
+                      : 'Adding Fragrance...'
+                    : editingProduct
+                      ? 'Save Changes'
+                      : 'Publish Fragrance'}
                 </Button>
               </div>
             </form>

@@ -28,16 +28,21 @@ enum OrderStatus {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  name         String
-  email        String    @unique
-  passwordHash String?
-  phone        String?
-  role         UserRole  @default(BUYER)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  orders       Order[]   @relation("BuyerOrders")
-  reviews      Review[]
+  id              String    @id @default(cuid())
+  name            String
+  email           String    @unique
+  passwordHash    String?
+  phone           String?
+  role            UserRole  @default(BUYER)
+  shippingState   String?
+  shippingCity    String?
+  shippingStreet  String?
+  shippingLandmark String?
+  shippingPhone   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  orders          Order[]   @relation("BuyerOrders")
+  reviews         Review[]
 }
 
 model Category {

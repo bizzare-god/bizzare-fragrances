@@ -100,13 +100,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const handleCheckoutSubmit = async (address: string, phone: string, notes?: string) => {
+  const handleCheckoutSubmit = async (details: {
+    address: string;
+    state: string;
+    city: string;
+    street: string;
+    landmark: string;
+    phone: string;
+    notes?: string;
+  }) => {
     if (cart.length === 0) return;
     const result = await store.placeOrder({
       items: cart,
-      shipping_address: address,
-      phone,
-      notes,
+      shipping_address: details.address,
+      phone: details.phone,
+      notes: details.notes,
+      state: details.state,
+      city: details.city,
+      street_address: details.street,
+      landmark: details.landmark,
     });
 
     if (result.payment?.authorization_url) {
@@ -156,6 +168,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             items={cart}
             onUpdateQuantity={updateCartQuantity}
             onRemoveItem={removeFromCart}
+            savedAddress={
+              store.currentUser
+                ? {
+                    state: store.currentUser.shipping_state || undefined,
+                    city: store.currentUser.shipping_city || undefined,
+                    street: store.currentUser.shipping_street || undefined,
+                    landmark: store.currentUser.shipping_landmark || undefined,
+                    phone: store.currentUser.shipping_phone || store.currentUser.phone || undefined,
+                  }
+                : null
+            }
             onCheckout={handleCheckoutSubmit}
           />
         )}

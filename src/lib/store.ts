@@ -159,7 +159,16 @@ export function useStore() {
     await refreshStore();
   }, [refreshStore]);
 
-  const placeOrder = useCallback(async (orderData: { items: { product: Product; quantity: number }[]; shipping_address: string; phone: string; notes?: string }) => {
+  const placeOrder = useCallback(async (orderData: {
+    items: { product: Product; quantity: number }[];
+    shipping_address: string;
+    phone: string;
+    notes?: string;
+    state?: string;
+    city?: string;
+    street_address?: string;
+    landmark?: string;
+  }) => {
     const result = await requestJson<{
       order: Order;
       payment?: {
@@ -175,6 +184,10 @@ export function useStore() {
         shipping_address: orderData.shipping_address,
         phone: orderData.phone,
         notes: orderData.notes,
+        state: orderData.state,
+        city: orderData.city,
+        street_address: orderData.street_address,
+        landmark: orderData.landmark,
       }),
     });
     await refreshStore();

@@ -46,9 +46,19 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const items = (Array.isArray(body.items) ? body.items : []) as CheckoutItem[];
-    const address = typeof body.shipping_address === 'string' ? body.shipping_address.trim() : '';
+    const state = typeof body.state === 'string' ? body.state.trim() : '';
+    const city = typeof body.city === 'string' ? body.city.trim() : '';
+    const street = typeof body.street_address === 'string' ? body.street_address.trim() : '';
+    const landmark = typeof body.landmark === 'string' ? body.landmark.trim() : '';
+    const legacyAddress = typeof body.shipping_address === 'string' ? body.shipping_address.trim() : '';
     const phone = typeof body.phone === 'string' ? body.phone.trim() : '';
     const notes = typeof body.notes === 'string' ? body.notes.trim() : undefined;
+
+    // Prefer structured fields; fall back to the previously-supported single string
+    const address =
+      street && city && state
+        ? `${street}${landmark ? `, ${landmark}` : ''}, ${city}, ${state} State, Nigeria`
+        : legacyAddress;
 
     if (
       !address ||
@@ -100,6 +110,22 @@ export async function POST(request: NextRequest) {
       },
       include: orderInclude,
     });
+
+    // Remember the delivery details so the client doesn't re-enter them next time
+    if (street || state || city || landmark || phone) {
+      await prisma.user
+        .update({
+          where: { id: user.id },
+          data: {
+            ...(state ? { shippingState: state } : {}),
+            ...(city ? { shippingCity: city } : {}),
+            ...(street ? { shippingStreet: street } : {}),
+            ...(landmark ? { shippingLandmark: landmark } : {}),
+            ...(phone ? { shippingPhone: phone } : {}),
+          },
+        })
+        .catch((err) => console.error('Failed to save client shipping address:', err));
+    }
 
     // Initialize Flutterwave payment
     const host = request.headers.get('host') || 'localhost:3000';
