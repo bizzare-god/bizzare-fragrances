@@ -45,6 +45,7 @@ export function OrderTracker({ order }: OrderTrackerProps) {
 
   const isCancelled = order.status === 'cancelled';
   const isPendingPayment = order.payment_status === 'pending' && !isCancelled;
+  const canCancel = !isCancelled && (order.status === 'pending' || order.status === 'processing');
   const currentIdx = statusOrderIndex[order.status] ?? 0;
 
   const handlePayNow = async () => {
@@ -224,6 +225,19 @@ export function OrderTracker({ order }: OrderTrackerProps) {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Cancel Action for Paid/Processing Orders */}
+      {!isPendingPayment && canCancel && (
+        <div className="flex justify-end">
+          <button
+            onClick={handleCancel}
+            disabled={isCancelling || isProcessingPayment}
+            className="inline-flex h-9 items-center justify-center rounded-lg border border-cream-border bg-white px-3 text-xs font-bold uppercase tracking-wider text-brown-deep/70 hover:text-red-700 hover:border-red-300 disabled:opacity-50"
+          >
+            {isCancelling ? 'Cancelling...' : 'Cancel Order'}
+          </button>
         </div>
       )}
 
