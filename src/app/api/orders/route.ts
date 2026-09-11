@@ -6,6 +6,8 @@ import { orderDto } from '@/lib/serializers';
 import { initializeOrderPayment, orderInclude } from '@/lib/orders';
 import { sendAdminOrderNotificationEmail } from '@/lib/email';
 import { rateLimit, requestIdentifier } from '@/lib/rateLimit';
+import { computeEffectivePrice } from '@/lib/pricing';
+import { getStorewideSale } from '@/lib/promo';
 
 export const dynamic = 'force-dynamic';
 
@@ -83,7 +85,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'One or more fragrances no longer have sufficient stock.' }, { status: 409 });
     }
 
-    const total = items.reduce((sum, item) => sum + Number(byId.get(item.product_id)!.price) * item.quantity, 0);
+    const storewide = await getStorewideSale();
+    const effectiveMap = new Map<string, number>();
+    for (const item of items) {
+      const product = byId.get(item.product_id)!;
+      if (!effectiveMap.has(product.id)) {
+        effectiveMap.set(product.id, computeEffectivePrice(product, storewide).current);
+      }
+    }
+
+    const total = items.reduce((sum, item) => sum + effectiveMap.get(item.product_id)! * item.quantity, 0);
     const tempRef = `bf_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
     // Create the order
@@ -103,7 +114,7 @@ export async function POST(request: NextRequest) {
             return {
               productId: product.id,
               quantity: item.quantity,
-              priceAtPurchase: product.price,
+              priceAtPurchase: effectiveMap.get(product.id)!,
             };
           }),
         },

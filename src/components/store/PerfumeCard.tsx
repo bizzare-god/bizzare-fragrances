@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { Product } from '@/types';
 import { formatCurrency } from '@/lib/utils';
-import { ArrowUpRight, Sparkles, ShoppingBag } from 'lucide-react';
+import { ArrowUpRight, Sparkles, ShoppingBag, Clock } from 'lucide-react';
+import { CountdownTimer, isDiscountActiveNow } from '@/components/store/CountdownTimer';
 
 interface PerfumeCardProps {
   product: Product;
@@ -26,6 +27,9 @@ export function PerfumeCard({ product, onAddToCart, index = 0 }: PerfumeCardProp
   const purchasable = product.stock > 0 && product.is_active;
   const lowStock = product.stock > 0 && product.stock <= 3;
   const aspectClass = MASONRY_ASPECT_RATIOS[index % MASONRY_ASPECT_RATIOS.length];
+  const [saleActive, setSaleActive] = useState(() => isDiscountActiveNow(product));
+  const handleSaleExpired = useCallback(() => setSaleActive(false), []);
+  const saleEndsAt = product.sale_ends_at;
 
   const notesList = Array.from(
     new Set(
@@ -61,9 +65,16 @@ export function PerfumeCard({ product, onAddToCart, index = 0 }: PerfumeCardProp
 
         {/* Top Badges (Responsive scaling for phones and iPad/desktop) */}
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-2 sm:p-3">
-          <span className="rounded-full bg-black/70 px-2 py-0.5 sm:px-2.5 sm:py-1 font-mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-cream-light backdrop-blur-md border border-white/10 truncate max-w-[65%]">
-            {product.scent_family}
-          </span>
+          <div className="flex items-center gap-1.5 sm:gap-2 max-w-[70%]">
+            <span className="rounded-full bg-black/70 px-2 py-0.5 sm:px-2.5 sm:py-1 font-mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-cream-light backdrop-blur-md border border-white/10 truncate max-w-[50%]">
+              {product.scent_family}
+            </span>
+            {saleActive && product.discount_percent && (
+              <span className="rounded-full bg-red-600 px-1.5 py-0.5 sm:px-2.5 sm:py-1 font-mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white shadow-md shrink-0">
+                {product.discount_percent}% OFF
+              </span>
+            )}
+          </div>
           <span
             className={`rounded-full px-1.5 py-0.5 sm:px-2.5 sm:py-1 font-mono text-[8px] sm:text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shrink-0 ${
               purchasable
@@ -126,10 +137,36 @@ export function PerfumeCard({ product, onAddToCart, index = 0 }: PerfumeCardProp
         {/* Footer with Price and Touch-Friendly Quick Add */}
         <div className="mt-3 sm:mt-4 flex items-center justify-between border-t border-cream-border/70 pt-2.5 sm:pt-3">
           <div className="min-w-0 pr-1">
-            <p className="hidden sm:block text-[9px] uppercase tracking-wider font-mono text-brown-deep/50">Price</p>
-            <p className="font-serif text-sm sm:text-base md:text-lg font-bold text-brown truncate">
-              {formatCurrency(product.price)}
+            <p className="hidden sm:block text-[9px] uppercase tracking-wider font-mono text-brown-deep/50">
+              {saleActive ? 'Sale Price' : 'Price'}
             </p>
+            {saleActive ? (
+              <div className="flex items-center gap-1.5">
+                <p className="font-serif text-sm sm:text-base md:text-lg font-bold text-red-700 truncate">
+                  {formatCurrency(product.price)}
+                </p>
+                <span className="shrink-0 rounded bg-red-100 border border-red-300 px-1 py-0.5 font-mono text-[9px] font-bold text-red-700">
+                  SAVE {product.discount_percent}%
+                </span>
+              </div>
+            ) : (
+              <p className="font-serif text-sm sm:text-base md:text-lg font-bold text-brown truncate">
+                {formatCurrency(product.price)}
+              </p>
+            )}
+            {saleActive && (
+              <>
+                <p className="text-[10px] sm:text-[11px] line-through text-brown-deep/45">
+                  {formatCurrency(product.original_price ?? product.price)}
+                </p>
+                {saleEndsAt && (
+                  <p className="flex items-center gap-1 text-[10px] font-mono text-red-700">
+                    <Clock className="h-3 w-3" />
+                    Ends <CountdownTimer target={saleEndsAt} onExpire={handleSaleExpired} />
+                  </p>
+                )}
+              </>
+            )}
           </div>
 
           <button

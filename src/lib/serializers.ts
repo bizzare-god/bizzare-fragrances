@@ -1,4 +1,5 @@
 import { Order, Product } from '@/types';
+import { computeEffectivePrice, StorewideSaleInput } from '@/lib/pricing';
 
 type ProductRecord = {
   id: string;
@@ -12,6 +13,10 @@ type ProductRecord = {
   baseNotes: string[];
   price: { toString(): string } | number;
   stock: number;
+  discountType?: string | null;
+  discountPercent?: number | null;
+  discountPrice?: { toString(): string } | number | null;
+  discountEndsAt?: Date | null;
   images: string[];
   isActive: boolean;
   createdAt: Date;
@@ -19,7 +24,12 @@ type ProductRecord = {
   category?: { name: string } | null;
 };
 
-export function productDto(product: ProductRecord): Product {
+export function productDto(product: ProductRecord, storewide?: StorewideSaleInput | null): Product {
+  const effective = computeEffectivePrice(product, storewide);
+  const isFixed = product.discountType === 'FIXED';
+  const discountValue =
+    product.discountType === 'PERCENT' ? (product.discountPercent ?? null) : isFixed ? Number(product.discountPrice) : null;
+
   return {
     id: product.id,
     name: product.name,
@@ -31,7 +41,13 @@ export function productDto(product: ProductRecord): Product {
     top_notes: product.topNotes,
     middle_notes: product.middleNotes,
     base_notes: product.baseNotes,
-    price: Number(product.price),
+    price: effective.current,
+    original_price: effective.saleActive ? effective.original : undefined,
+    discount_percent: effective.saleActive ? (effective.percent ?? undefined) : undefined,
+    sale_ends_at: effective.saleActive ? effective.saleEndsAt ?? undefined : undefined,
+    discount_type: product.discountType as Product['discount_type'],
+    discount_value: discountValue,
+    discount_ends_at: product.discountEndsAt ? product.discountEndsAt.toISOString() : null,
     stock: product.stock,
     image_url: product.images[0] || '',
     is_active: product.isActive,

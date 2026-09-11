@@ -181,7 +181,14 @@ export function CartDrawer({
                     <p className="text-xs font-mono text-brown-warm">
                       {product.volume_ml}ml • {product.scent_family}
                     </p>
-                    <p className="mt-1 text-sm font-bold text-brown">{formatCurrency(product.price)}</p>
+                    {product.original_price && product.sale_ends_at && new Date(product.sale_ends_at).getTime() > Date.now() ? (
+                      <div className="mt-1">
+                        <p className="text-sm font-bold text-red-700">{formatCurrency(product.price)}</p>
+                        <p className="text-[10px] line-through text-brown-deep/40">{formatCurrency(product.original_price)}</p>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm font-bold text-brown">{formatCurrency(product.price)}</p>
+                    )}
                     <p className="mt-0.5 text-[11px] text-brown-deep/55">{product.stock} available</p>
                   </div>
                   <div className="flex flex-col items-end justify-between">

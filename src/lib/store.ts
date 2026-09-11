@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Order, OrderStatus, Product, Profile, UserRole } from '@/types';
 
 const USER_CACHE_KEY = 'bf_cached_user_v2';
-const PRODUCTS_CACHE_KEY = 'bf_cached_products_v3';
+const PRODUCTS_CACHE_KEY = 'bf_cached_products_v4';
 const ORDERS_CACHE_KEY = 'bf_cached_orders_v2';
 
 async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {

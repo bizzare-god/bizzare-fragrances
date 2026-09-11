@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Order, OrderStatus, Product, Profile, ScentFamily, UserRole } from '@/types';
+import { Advert, Order, OrderStatus, Product, Profile, ScentFamily, UserRole } from '@/types';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/Card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
@@ -29,6 +29,8 @@ import {
   UploadCloud,
   Pencil,
   X,
+  Megaphone,
+  CalendarClock,
 } from 'lucide-react';
 
 interface AdminDashboardViewProps {
@@ -87,6 +89,12 @@ export function AdminDashboardView({
   const [formDescription, setFormDescription] = useState('');
   const [formNotes, setFormNotes] = useState('');
 
+  // Limited-time discount form state (per-fragrance)
+  const [formDiscountType, setFormDiscountType] = useState<'NONE' | 'PERCENT' | 'FIXED'>('NONE');
+  const [formDiscountPercent, setFormDiscountPercent] = useState('');
+  const [formDiscountPrice, setFormDiscountPrice] = useState('');
+  const [formDiscountEnds, setFormDiscountEnds] = useState('');
+
   // Image upload state
   const [formImageUploading, setFormImageUploading] = useState(false);
   const [formImageError, setFormImageError] = useState('');
@@ -95,8 +103,67 @@ export function AdminDashboardView({
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
+  // Store-wide sale (all items) state
+  const [promoFormPercent, setPromoFormPercent] = useState('');
+  const [promoFormEnds, setPromoFormEnds] = useState('');
+  const [promoSaving, setPromoSaving] = useState(false);
+  const [promoStatus, setPromoStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+
+  // Advert banner state
+  const [adverts, setAdverts] = useState<Advert[]>([]);
+  const [advertFormOpen, setAdvertFormOpen] = useState(false);
+  const [editingAdvert, setEditingAdvert] = useState<Advert | null>(null);
+  const [advertTitle, setAdvertTitle] = useState('');
+  const [advertDescription, setAdvertDescription] = useState('');
+  const [advertLink, setAdvertLink] = useState('');
+  const [advertButtonText, setAdvertButtonText] = useState('');
+  const [advertStarts, setAdvertStarts] = useState('');
+  const [advertEnds, setAdvertEnds] = useState('');
+  const [advertActive, setAdvertActive] = useState(true);
+  const [advertSaving, setAdvertSaving] = useState(false);
+  const [advertError, setAdvertError] = useState('');
+
   // Admin catalog source: ALL fragrances (active + hidden), unlike the storefront's public list
   const [catalog, setCatalog] = useState<Product[]>(products);
+
+  const toDatetimeLocal = (iso?: string | null): string => {
+    if (!iso) return '';
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+
+  const fromDatetimeLocal = (value: string): string | null => {
+    if (!value.trim()) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  };
+
+  const loadPromo = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/promo', { cache: 'no-store' });
+      const data = (await res.json().catch(() => null)) as { promo?: { discount_percent?: number | null; discount_ends_at?: string | null } } | null;
+      if (res.ok && data?.promo) {
+        setPromoFormPercent(data.promo.discount_percent ? String(data.promo.discount_percent) : '');
+        setPromoFormEnds(toDatetimeLocal(data.promo.discount_ends_at));
+      }
+    } catch (err) {
+      console.error('Failed to load store-wide sale:', err);
+    }
+  }, []);
+
+  const loadAdverts = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/adverts', { cache: 'no-store' });
+      const data = (await res.json().catch(() => null)) as { adverts?: Advert[] } | null;
+      if (res.ok && Array.isArray(data?.adverts)) {
+        setAdverts(data.adverts);
+      }
+    } catch (err) {
+      console.error('Failed to load promotion banners:', err);
+    }
+  }, []);
 
   const reloadCatalog = useCallback(async () => {
     try {
@@ -115,7 +182,9 @@ export function AdminDashboardView({
 
   useEffect(() => {
     void reloadCatalog();
-  }, [reloadCatalog]);
+    void loadPromo();
+    void loadAdverts();
+  }, [reloadCatalog, loadPromo, loadAdverts]);
 
   // Metrics
   const totalRevenue = useMemo(
@@ -168,6 +237,10 @@ export function AdminDashboardView({
     setFormNotes('');
     setFormImage('');
     setFormImageError('');
+    setFormDiscountType('NONE');
+    setFormDiscountPercent('');
+    setFormDiscountPrice('');
+    setFormDiscountEnds('');
     setEditingProduct(null);
   };
 
@@ -176,14 +249,46 @@ export function AdminDashboardView({
     setFormName(product.name);
     setFormBrand(product.brand || 'Bizzare Fragrance');
     setFormScentFamily(product.scent_family);
-    setFormPrice(String(product.price));
+    setFormPrice(String(product.original_price ?? product.price));
     setFormStock(String(product.stock));
     setFormVolume(String(product.volume_ml));
     setFormImage(product.image_url || '');
     setFormDescription(product.description || '');
     setFormNotes(product.top_notes?.join(', ') || '');
+    setFormDiscountType(product.discount_type === 'PERCENT' ? 'PERCENT' : product.discount_type === 'FIXED' ? 'FIXED' : 'NONE');
+    if (product.discount_type === 'PERCENT') {
+      setFormDiscountPercent(product.discount_value ? String(product.discount_value) : '');
+      setFormDiscountPrice('');
+    } else if (product.discount_type === 'FIXED') {
+      setFormDiscountPrice(product.discount_value ? String(product.discount_value) : '');
+      setFormDiscountPercent('');
+    } else {
+      setFormDiscountPercent('');
+      setFormDiscountPrice('');
+    }
+    setFormDiscountEnds(toDatetimeLocal(product.discount_ends_at));
     setFormImageError('');
     setShowAddModal(true);
+  };
+
+  const buildDiscountPayload = () => {
+    if (formDiscountType === 'NONE') {
+      return { discount_type: null, discount_percent: null, discount_price: null, discount_ends_at: null };
+    }
+    if (formDiscountType === 'PERCENT') {
+      return {
+        discount_type: 'PERCENT' as const,
+        discount_percent: parseInt(formDiscountPercent, 10),
+        discount_price: null,
+        discount_ends_at: fromDatetimeLocal(formDiscountEnds),
+      };
+    }
+    return {
+      discount_type: 'FIXED' as const,
+      discount_percent: null,
+      discount_price: parseFloat(formDiscountPrice),
+      discount_ends_at: fromDatetimeLocal(formDiscountEnds),
+    };
   };
 
   const handleCreateProduct = async (e: React.FormEvent) => {
@@ -191,6 +296,7 @@ export function AdminDashboardView({
     if (!formName || !formPrice || !formStock) return;
     setIsSubmitting(true);
     try {
+      const discountPayload = buildDiscountPayload();
       const payload = {
         name: formName.trim(),
         brand: formBrand.trim() || 'Bizzare Fragrance',
@@ -204,6 +310,7 @@ export function AdminDashboardView({
         middle_notes: [],
         base_notes: [],
         is_active: editingProduct ? editingProduct.is_active : true,
+        ...discountPayload,
       };
 
       if (editingProduct) {
@@ -310,6 +417,93 @@ export function AdminDashboardView({
       await reloadCatalog();
     } catch (err) {
       console.error('Failed to delete fragrance:', err);
+    }
+  };
+
+  const handlePromoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPromoSaving(true);
+    setPromoStatus(null);
+    try {
+      const percentRaw = promoFormPercent.trim();
+      const res = await fetch('/api/admin/promo', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          discount_percent: percentRaw ? parseInt(percentRaw, 10) : null,
+          discount_ends_at: fromDatetimeLocal(promoFormEnds),
+        }),
+      });
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) throw new Error(data?.error || 'Unable to update the store-wide sale.');
+      setPromoStatus({ kind: 'ok', message: 'Store-wide sale updated — it now applies across the boutique.' });
+      await reloadCatalog();
+    } catch (err) {
+      setPromoStatus({ kind: 'err', message: err instanceof Error ? err.message : 'Unable to update the sale.' });
+    } finally {
+      setPromoSaving(false);
+    }
+  };
+
+  const openAdvertForm = (advert?: Advert) => {
+    setEditingAdvert(advert ?? null);
+    setAdvertTitle(advert?.title ?? '');
+    setAdvertDescription(advert?.description ?? '');
+    setAdvertLink(advert?.link_url ?? '');
+    setAdvertButtonText(advert?.button_text ?? '');
+    setAdvertStarts(advert ? toDatetimeLocal(advert.starts_at) : toDatetimeLocal(new Date().toISOString()));
+    setAdvertEnds(advert ? toDatetimeLocal(advert.ends_at) : '');
+    setAdvertActive(advert?.is_active ?? true);
+    setAdvertError('');
+    setAdvertFormOpen(true);
+  };
+
+  const closeAdvertForm = () => {
+    setAdvertFormOpen(false);
+    setEditingAdvert(null);
+  };
+
+  const saveAdvert = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!advertTitle.trim()) {
+      setAdvertError('Provide a title for the banner.');
+      return;
+    }
+    setAdvertSaving(true);
+    setAdvertError('');
+    try {
+      const body = {
+        title: advertTitle.trim(),
+        description: advertDescription.trim(),
+        link_url: advertLink.trim(),
+        button_text: advertButtonText.trim(),
+        is_active: advertActive,
+        starts_at: fromDatetimeLocal(advertStarts),
+        ends_at: fromDatetimeLocal(advertEnds),
+      };
+      const url = editingAdvert ? `/api/admin/adverts/${editingAdvert.id}` : '/api/admin/adverts';
+      const method = editingAdvert ? 'PATCH' : 'POST';
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) throw new Error(data?.error || 'Unable to save the banner.');
+      closeAdvertForm();
+      await loadAdverts();
+    } catch (err) {
+      setAdvertError(err instanceof Error ? err.message : 'Unable to save the banner.');
+    } finally {
+      setAdvertSaving(false);
+    }
+  };
+
+  const deleteAdvert = async (advert: Advert) => {
+    const confirmed = window.confirm(`Delete the "${advert.title}" banner?`);
+    if (!confirmed) return;
+    try {
+      const res = await fetch(`/api/admin/adverts/${advert.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Unable to delete the banner.');
+      await loadAdverts();
+    } catch (err) {
+      console.error('Failed to delete banner:', err);
     }
   };
 
@@ -455,6 +649,7 @@ export function AdminDashboardView({
           { id: 'orders', label: 'Customer Orders', icon: <DollarSign className="h-4 w-4" />, count: orders.length },
           { id: 'products', label: 'Fragrance Collection', icon: <Package className="h-4 w-4" />, count: catalog.length },
           { id: 'users', label: 'Client Directory', icon: <Users className="h-4 w-4" />, count: profiles.length },
+          { id: 'promo', label: 'Promotions & Banners', icon: <Megaphone className="h-4 w-4" />, count: adverts.filter((a) => a.is_active).length },
         ]}
         activeTab={activeTab}
         onChange={setActiveTab}
@@ -746,7 +941,19 @@ export function AdminDashboardView({
                         </span>
                       </TableCell>
                       <TableCell className="font-serif font-bold text-brown">
-                        {formatCurrency(product.price)}
+                        {product.original_price && product.discount_percent ? (
+                          <div>
+                            <span className="text-red-700">{formatCurrency(product.price)}</span>{' '}
+                            <span className="text-[11px] font-normal text-brown-deep/45 line-through">
+                              {formatCurrency(product.original_price)}
+                            </span>
+                            <span className="ml-1 inline-block rounded bg-red-600 px-1 py-0.5 text-[9px] font-bold text-white align-middle">
+                              -{product.discount_percent}%
+                            </span>
+                          </div>
+                        ) : (
+                          formatCurrency(product.price)
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
@@ -932,6 +1139,243 @@ export function AdminDashboardView({
         </Card>
       )}
 
+      {/* TAB 4: PROMOTIONS & BANNERS */}
+      {activeTab === 'promo' && (
+        <div className="space-y-6">
+          {/* Store-wide sale */}
+          <Card>
+            <CardHeader className="border-b border-cream-border pb-5">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-700">
+                  <CalendarClock className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle>Store-Wide Sale (All Fragrances)</CardTitle>
+                  <CardDescription>
+                    Apply a limited-time percentage discount to every fragrance that does not have its own sale. Shoppers
+                    see the previous price struck through plus a live countdown until it expires.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePromoSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-brown-deep">Discount %</label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="99"
+                      placeholder="e.g. 20"
+                      value={promoFormPercent}
+                      onChange={(e) => setPromoFormPercent(e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-brown-deep">Sale Ends At</label>
+                    <input
+                      type="datetime-local"
+                      value={promoFormEnds}
+                      onChange={(e) => setPromoFormEnds(e.target.value)}
+                      className="h-10 w-full rounded-lg border border-cream-border bg-white px-3 text-sm text-brown-deep focus:border-brown focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <Button type="submit" disabled={promoSaving} className="gap-2 font-bold">
+                      {promoSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                      Save Sale
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        setPromoFormPercent('');
+                        setPromoFormEnds('');
+                      }}
+                      className="font-bold"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+                {promoStatus && (
+                  <p className={`text-xs font-bold ${promoStatus.kind === 'ok' ? 'text-emerald-700' : 'text-red-700'}`}>
+                    {promoStatus.message}
+                  </p>
+                )}
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Advert banners */}
+          <Card>
+            <CardHeader className="flex flex-col gap-4 border-b border-cream-border pb-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle>Advert Banners</CardTitle>
+                <CardDescription>
+                  Announce sales and boutique news with banners that show a countdown and vanish automatically once their
+                  time window ends.
+                </CardDescription>
+              </div>
+              <Button size="sm" onClick={() => openAdvertForm()} className="gap-1.5 text-xs font-bold">
+                <Plus className="h-3.5 w-3.5" />
+                New Banner
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {advertFormOpen && (
+                <form onSubmit={saveAdvert} className="space-y-3.5 rounded-xl border border-brown/20 bg-cream-soft/60 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold uppercase tracking-wider text-brown">
+                      {editingAdvert ? 'Edit Banner' : 'New Banner'}
+                    </span>
+                    <button type="button" onClick={closeAdvertForm} className="rounded p-1 text-brown-deep/60 hover:bg-cream-soft">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-brown-deep">Title *</label>
+                      <Input
+                        required
+                        value={advertTitle}
+                        onChange={(e) => setAdvertTitle(e.target.value)}
+                        placeholder="e.g. Grand Anniversary Sale"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-brown-deep">Button Text</label>
+                      <Input
+                        value={advertButtonText}
+                        onChange={(e) => setAdvertButtonText(e.target.value)}
+                        placeholder="Shop Sale"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-brown-deep">
+                      Description (optional)
+                    </label>
+                    <Input
+                      value={advertDescription}
+                      onChange={(e) => setAdvertDescription(e.target.value)}
+                      placeholder="e.g. Up to 30% off select creations"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-brown-deep">Starts At</label>
+                      <input
+                        type="datetime-local"
+                        value={advertStarts}
+                        onChange={(e) => setAdvertStarts(e.target.value)}
+                        className="h-10 w-full rounded-lg border border-cream-border bg-white px-3 text-sm text-brown-deep focus:border-brown focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-brown-deep">Ends At *</label>
+                      <input
+                        type="datetime-local"
+                        required
+                        value={advertEnds}
+                        onChange={(e) => setAdvertEnds(e.target.value)}
+                        className="h-10 w-full rounded-lg border border-cream-border bg-white px-3 text-sm text-brown-deep focus:border-brown focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-brown-deep">Link (optional)</label>
+                    <Input
+                      value={advertLink}
+                      onChange={(e) => setAdvertLink(e.target.value)}
+                      placeholder="https://bizzarefragrances.shop/shop"
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                    <label className="flex cursor-pointer items-center gap-2 text-xs font-bold uppercase tracking-wider text-brown-deep">
+                      <input
+                        type="checkbox"
+                        checked={advertActive}
+                        onChange={(e) => setAdvertActive(e.target.checked)}
+                        className="h-4 w-4 accent-brown"
+                      />
+                      Banner active
+                    </label>
+                    <div className="flex items-center gap-2">
+                      {advertError && <span className="text-xs font-bold text-red-700">{advertError}</span>}
+                      <Button type="submit" disabled={advertSaving} size="sm" className="gap-1.5 text-xs font-bold">
+                        {advertSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                        {editingAdvert ? 'Save Changes' : 'Publish Banner'}
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+              )}
+
+              {adverts.length === 0 && !advertFormOpen ? (
+                <div className="py-12 text-center">
+                  <Megaphone className="mx-auto h-8 w-8 text-brown-deep/30" />
+                  <h3 className="mt-3 font-serif text-lg font-bold text-brown-deep">No banners yet</h3>
+                  <p className="mt-1 text-xs text-brown-deep/60">Create a banner to advertise sales and boutique news.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {adverts.map((advert) => {
+                    const now = Date.now();
+                    const live =
+                      advert.is_active &&
+                      now >= new Date(advert.starts_at).getTime() &&
+                      now < new Date(advert.ends_at).getTime();
+                    return (
+                      <div
+                        key={advert.id}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cream-border bg-white p-3.5"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate font-serif text-sm font-bold text-brown-deep">{advert.title}</span>
+                            <Badge variant={live ? 'emerald' : advert.is_active ? 'amber' : 'red'}>
+                              {live ? 'LIVE' : advert.is_active ? 'SCHEDULED' : 'DISABLED'}
+                            </Badge>
+                          </div>
+                          <p className="mt-0.5 font-mono text-[11px] text-brown-deep/60">
+                            {formatDate(advert.starts_at)} → {formatDate(advert.ends_at)}
+                          </p>
+                          {advert.description && (
+                            <p className="mt-0.5 max-w-xl truncate text-[11px] text-brown-deep/65">{advert.description}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openAdvertForm(advert)}
+                            className="gap-1 text-xs font-bold text-brown hover:bg-cream-soft"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => void deleteAdvert(advert)}
+                            className="text-xs font-bold text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* ADD FRAGRANCE MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
@@ -1017,6 +1461,85 @@ export function AdminDashboardView({
                     className="mt-1"
                   />
                 </div>
+              </div>
+
+              {/* Limited-Time Discount */}
+              <div className="space-y-3 rounded-xl border border-cream-border bg-cream-soft/50 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-brown-deep">
+                      Limited-Time Discount
+                    </label>
+                    <p className="text-[11px] text-brown-deep/55">
+                      Shoppers see the original price struck through, the % off, and a live countdown.
+                    </p>
+                  </div>
+                  <select
+                    value={formDiscountType}
+                    onChange={(e) => setFormDiscountType(e.target.value as 'NONE' | 'PERCENT' | 'FIXED')}
+                    className="h-10 rounded-lg border border-cream-border bg-white px-3 text-xs font-bold text-brown-deep focus:border-brown focus:outline-none"
+                  >
+                    <option value="NONE">No discount</option>
+                    <option value="PERCENT">Percentage off (%)</option>
+                    <option value="FIXED">Fixed sale price (₦)</option>
+                  </select>
+                </div>
+
+                {formDiscountType === 'PERCENT' && (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-brown-deep">Discount % (1-99)</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="99"
+                        required
+                        placeholder="e.g. 25"
+                        value={formDiscountPercent}
+                        onChange={(e) => setFormDiscountPercent(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-brown-deep">Sale Ends At *</label>
+                      <input
+                        type="datetime-local"
+                        required
+                        value={formDiscountEnds}
+                        onChange={(e) => setFormDiscountEnds(e.target.value)}
+                        className="mt-1 h-10 w-full rounded-lg border border-cream-border bg-white px-3 text-sm text-brown-deep focus:border-brown focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {formDiscountType === 'FIXED' && (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-brown-deep">Sale Price (₦) *</label>
+                      <Input
+                        type="number"
+                        step="1"
+                        min="1"
+                        required
+                        placeholder="e.g. 65000"
+                        value={formDiscountPrice}
+                        onChange={(e) => setFormDiscountPrice(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-brown-deep">Sale Ends At *</label>
+                      <input
+                        type="datetime-local"
+                        required
+                        value={formDiscountEnds}
+                        onChange={(e) => setFormDiscountEnds(e.target.value)}
+                        className="mt-1 h-10 w-full rounded-lg border border-cream-border bg-white px-3 text-sm text-brown-deep focus:border-brown focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

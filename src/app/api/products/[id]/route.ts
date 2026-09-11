@@ -3,6 +3,8 @@ import { Prisma, UserRole } from '@prisma/client';
 import { authConfigured, configurationError, getSessionUser, hasRole } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { productDto } from '@/lib/serializers';
+import { parseDiscountFields } from '@/lib/pricing';
+import { getStorewideSale } from '@/lib/promo';
 import { recordAuditLog } from '@/lib/audit';
 import { invalidateProductCache } from '@/lib/cache';
 
@@ -30,7 +32,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       }
     }
 
-    return NextResponse.json({ product: productDto(product) });
+    const storewide = await getStorewideSale();
+    return NextResponse.json({ product: productDto(product, storewide) });
   } catch {
     return NextResponse.json({ error: 'Unable to load the product.' }, { status: 500 });
   }
@@ -72,6 +75,23 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       updates.categoryId = cat.id;
     }
 
+    // Discount fields are only touched when the admin explicitly sends discount_type
+    if ('discount_type' in body) {
+      const basePrice = Number.isFinite(body.price) && Number(body.price) > 0 ? Number(body.price) : Number(existing.price);
+      try {
+        const discount = parseDiscountFields(body, basePrice);
+        updates.discountType = discount.discountType;
+        updates.discountPercent = discount.discountPercent;
+        updates.discountPrice = discount.discountPrice;
+        updates.discountEndsAt = discount.discountEndsAt;
+      } catch (error) {
+        return NextResponse.json(
+          { error: error instanceof Error ? error.message : 'Invalid discount configuration.' },
+          { status: 400 }
+        );
+      }
+    }
+
     const product = await prisma.product.update({
       where: { id: existing.id },
       data: updates,
@@ -89,7 +109,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     invalidateProductCache();
 
-    return NextResponse.json({ product: productDto(product) });
+    const storewide = await getStorewideSale();
+    return NextResponse.json({ product: productDto(product, storewide) });
   } catch (error) {
     console.error('Error updating product:', error);
     return NextResponse.json({ error: 'Unable to update the product.' }, { status: 500 });

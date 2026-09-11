@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { PromoBanner } from '@/components/layout/PromoBanner';
 import { CartDrawer, CartItem } from '@/components/store/CartDrawer';
 import { Product } from '@/types';
 
@@ -144,6 +145,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       <div className="min-h-screen flex flex-col bg-cream-soft text-brown-deep font-sans selection:bg-brown-warm selection:text-white">
+        {/* Active promotions / advert banners */}
+        {!isAdminWorkspace && <PromoBanner />}
+
         {/* Dynamic Contextual Navbar */}
         <Navbar
           cartCount={totalCartCount}

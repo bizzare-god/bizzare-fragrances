@@ -3,6 +3,8 @@ import { UserRole } from '@prisma/client';
 import { authConfigured, configurationError, getSessionUser, hasRole } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { productDto } from '@/lib/serializers';
+import { parseDiscountFields } from '@/lib/pricing';
+import { getStorewideSale } from '@/lib/promo';
 import { recordAuditLog } from '@/lib/audit';
 import { memoryCache, invalidateProductCache } from '@/lib/cache';
 
@@ -46,7 +48,8 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
-    const dtos = products.map(productDto);
+    const storewide = await getStorewideSale();
+    const dtos = products.map((product) => productDto(product, storewide));
 
     if (!canViewAll) {
       memoryCache.set(cacheKey, dtos, 60_000);
@@ -87,6 +90,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let discount: ReturnType<typeof parseDiscountFields>;
+    try {
+      discount = parseDiscountFields(body, price);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Invalid discount configuration.' },
+        { status: 400 }
+      );
+    }
+
     let categoryId: string | undefined = undefined;
     if (categoryName) {
       const cat = await prisma.category.upsert({
@@ -114,6 +127,10 @@ export async function POST(request: NextRequest) {
         baseNotes: Array.isArray(body.base_notes) ? body.base_notes.map(String) : [],
         price,
         stock,
+        discountType: discount.discountType,
+        discountPercent: discount.discountPercent,
+        discountPrice: discount.discountPrice,
+        discountEndsAt: discount.discountEndsAt,
         images,
         isActive: true,
       },
@@ -126,12 +143,20 @@ export async function POST(request: NextRequest) {
       action: 'CREATE_PRODUCT',
       targetType: 'Product',
       targetId: product.id,
-      details: { name: product.name, price: Number(product.price), stock: product.stock },
+      details: {
+        name: product.name,
+        price: Number(product.price),
+        stock: product.stock,
+        discountType: discount.discountType,
+        discountPercent: discount.discountPercent,
+        discountPrice: discount.discountPrice,
+      },
     });
 
     invalidateProductCache();
 
-    return NextResponse.json({ product: productDto(product) }, { status: 201 });
+    const storewide = await getStorewideSale();
+    return NextResponse.json({ product: productDto(product, storewide) }, { status: 201 });
   } catch (error) {
     console.error('Error in /api/products POST:', error);
     return NextResponse.json({ error: 'Unable to create the product.' }, { status: 500 });

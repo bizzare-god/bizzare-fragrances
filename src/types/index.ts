@@ -46,12 +46,34 @@ export interface Product {
   middle_notes: string[];
   base_notes: string[];
   price: number;
+  original_price?: number;
+  discount_percent?: number | null;
+  sale_ends_at?: string;
+  discount_type?: 'PERCENT' | 'FIXED' | null;
+  discount_value?: number | null;
+  discount_ends_at?: string | null;
   stock: number;
   description?: string;
   image_url: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface Advert {
+  id: string;
+  title: string;
+  description?: string;
+  link_url?: string;
+  button_text?: string;
+  is_active: boolean;
+  starts_at: string;
+  ends_at: string;
+}
+
+export interface StorePromo {
+  discount_percent?: number | null;
+  discount_ends_at?: string | null;
 }
 
 export interface OrderItem {

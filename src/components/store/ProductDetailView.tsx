@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShoppingBag, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, ShieldCheck, Sparkles, Loader2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useStoreContext } from '@/components/providers/StoreProvider';
 import { formatCurrency } from '@/lib/utils';
+import { CountdownTimer, isDiscountActiveNow } from '@/components/store/CountdownTimer';
 import { Product } from '@/types';
 
 interface ProductDetailViewProps {
@@ -17,6 +18,9 @@ export function ProductDetailView({ productId }: ProductDetailViewProps) {
   const [product, setProduct] = useState<Product | null>(() => {
     return products.find((item) => item.id === productId) || null;
   });
+  const [saleActive, setSaleActive] = useState<boolean>(() =>
+    products.find((item) => item.id === productId) ? isDiscountActiveNow(products.find((item) => item.id === productId)!) : false
+  );
   const [loading, setLoading] = useState(!product);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -24,6 +28,7 @@ export function ProductDetailView({ productId }: ProductDetailViewProps) {
     const cached = products.find((item) => item.id === productId);
     if (cached) {
       setProduct(cached);
+      setSaleActive(isDiscountActiveNow(cached));
       setLoading(false);
       return;
     }
@@ -41,6 +46,7 @@ export function ProductDetailView({ productId }: ProductDetailViewProps) {
       .then((data) => {
         if (isMounted && data.product) {
           setProduct(data.product);
+          setSaleActive(isDiscountActiveNow(data.product));
           setFetchError(null);
         }
       })
@@ -122,7 +128,21 @@ export function ProductDetailView({ productId }: ProductDetailViewProps) {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <p className="font-serif text-3xl font-bold text-brown">{formatCurrency(product.price)}</p>
+              {saleActive ? (
+                <div className="flex items-end gap-3">
+                  <div>
+                    <p className="text-sm leading-tight line-through text-brown-deep/45">
+                      {formatCurrency(product.original_price ?? product.price)}
+                    </p>
+                    <p className="font-serif text-3xl font-bold text-red-700">{formatCurrency(product.price)}</p>
+                  </div>
+                  <span className="mb-0.5 rounded-lg bg-red-600 px-2.5 py-1 text-xs font-bold uppercase tracking-widest text-white shadow-sm">
+                    {product.discount_percent}% OFF
+                  </span>
+                </div>
+              ) : (
+                <p className="font-serif text-3xl font-bold text-brown">{formatCurrency(product.price)}</p>
+              )}
               <span
                 className={`border rounded-lg px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] ${
                   purchasable ? 'border-emerald-700 bg-emerald-50 text-emerald-800' : 'border-brown text-brown'
@@ -130,6 +150,12 @@ export function ProductDetailView({ productId }: ProductDetailViewProps) {
               >
                 {purchasable ? `${product.stock} bottles available` : 'Sold out'}
               </span>
+              {saleActive && product.sale_ends_at && (
+                <span className="flex items-center gap-1.5 border border-red-700 bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-red-700 rounded-lg">
+                  <Clock className="h-3.5 w-3.5" />
+                  Sale ends <CountdownTimer target={product.sale_ends_at} onExpire={() => setSaleActive(false)} className="font-mono normal-case tracking-normal" />
+                </span>
+              )}
               {product.stock > 0 && product.stock < 5 && (
                 <span className="border border-red-700 bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-red-700 rounded-lg">
                   Low stock
