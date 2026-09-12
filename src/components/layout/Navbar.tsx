@@ -149,7 +149,7 @@ export function Navbar({ cartCount, onOpenCart, currentUser, onSignOut }: Navbar
                 BIZZARE FRAGRANCES
               </span>
               <span className="mt-0.5 sm:mt-1 block text-[9px] sm:text-[10px] font-medium tracking-[0.18em] text-brown-warm">
-                (by Bizzare)
+                Original Imported Perfumes
               </span>
             </div>
           </Link>

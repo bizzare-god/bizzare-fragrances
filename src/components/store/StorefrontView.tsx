@@ -19,6 +19,7 @@ import { useStoreContext } from '@/components/providers/StoreProvider';
 import { PerfumeCard } from '@/components/store/PerfumeCard';
 import { OrderTracker } from '@/components/store/OrderTracker';
 import { ScentFamily } from '@/types';
+import { productUrl } from '@/lib/seo';
 
 const families: (ScentFamily | 'ALL')[] = [
   'ALL',
@@ -133,9 +134,9 @@ function StorefrontContent() {
             </div>
             <div className="space-y-4">
               <h1 className="font-serif text-5xl font-bold leading-[0.95] tracking-normal text-white sm:text-7xl">
-                Bizzare Fragrances
+                Original Imported Perfumes in Nigeria
                 <span className="mt-3 block font-sans text-xl font-normal tracking-[0.2em] text-brown-warm sm:text-2xl">
-                  (by Bizzare)
+                  Bizzare Fragrances
                 </span>
               </h1>
               <p className="max-w-xl text-base leading-8 text-cream-light/85 sm:text-lg">
@@ -152,7 +153,7 @@ function StorefrontContent() {
               </a>
               {heroProduct && (
                 <Link
-                  href={`/product/${heroProduct.id}`}
+                  href={productUrl(heroProduct)}
                   className="inline-flex h-12 items-center rounded-xl border border-white/25 bg-white/5 px-6 text-xs font-semibold uppercase tracking-[0.14em] text-white backdrop-blur transition-all hover:border-brown-warm hover:bg-white/10 hover:text-brown-warm"
                 >
                   View Featured Scent

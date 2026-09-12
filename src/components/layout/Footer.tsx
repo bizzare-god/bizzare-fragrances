@@ -14,7 +14,7 @@ export function Footer() {
             </div>
             <div className="leading-none">
               <span className="block font-serif text-base font-bold tracking-[0.18em] text-white">BIZZARE FRAGRANCES</span>
-              <span className="mt-1 block text-[10px] font-medium tracking-[0.18em] text-brown-warm">(by Bizzare)</span>
+              <span className="mt-1 block text-[10px] font-medium tracking-[0.18em] text-brown-warm">Original Imported Perfumes</span>
             </div>
           </div>
           <p className="mt-4 max-w-sm text-xs leading-6 text-cream-muted/80">
@@ -110,7 +110,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-white/10 px-4 py-5 text-center text-xs text-cream-muted">
-        Copyright 2026 Bizzare Fragrances (by Bizzare). All rights reserved.
+        Copyright 2026 Bizzare Fragrances. All rights reserved.
       </div>
     </footer>
   );

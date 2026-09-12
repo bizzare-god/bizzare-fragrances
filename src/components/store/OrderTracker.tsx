@@ -245,7 +245,7 @@ export function OrderTracker({ order }: OrderTrackerProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-cream-border text-xs">
         <div className="space-y-1 p-3.5 rounded-xl bg-cream-soft border border-cream-border">
           <span className="text-brown font-mono uppercase text-[10px] block font-bold">Boutique Merchant</span>
-          <p className="text-brown-deep font-bold text-sm">Bizzare Fragrances (by Bizzare)</p>
+          <p className="text-brown-deep font-bold text-sm">Bizzare Fragrances</p>
           <p className="text-brown-deep/65">
             Artisanal luxury perfumery & direct delivery.
           </p>

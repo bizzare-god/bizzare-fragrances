@@ -102,10 +102,10 @@ function CollectionContent() {
             Imported Haute Parfumerie Catalog
           </div>
           <h1 className="mt-3 font-serif text-3xl sm:text-5xl font-bold leading-tight text-brown-deep">
-            The Fragrance Collection
+            Original Imported Perfumes in Nigeria - Bizzare Fragrances Collection
           </h1>
           <p className="mt-3 text-sm sm:text-base leading-relaxed text-brown-deep/75 max-w-2xl">
-            Browse the complete catalogue of 100% authentic, imported luxury and niche perfumes — Bizzare perfumes and Bizarre Fragrances, sourced from prestigious houses across France, the UAE, Italy, and the UK. Filter by olfactory family, price range, or signature notes.
+            Browse the complete catalogue of 100% authentic, imported luxury and niche perfumes — original fragrances sourced from prestigious houses across France, the UAE, Italy, and the UK. Filter by olfactory family, price range, or signature notes.
           </p>
         </div>
       </div>

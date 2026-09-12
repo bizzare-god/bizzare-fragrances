@@ -7,6 +7,7 @@ import { Product } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { ArrowUpRight, Sparkles, ShoppingBag, Clock } from 'lucide-react';
 import { CountdownTimer, isDiscountActiveNow } from '@/components/store/CountdownTimer';
+import { productUrl } from '@/lib/seo';
 
 interface PerfumeCardProps {
   product: Product;
@@ -28,6 +29,7 @@ export function PerfumeCard({ product, onAddToCart, index = 0 }: PerfumeCardProp
   const purchasable = product.stock > 0 && product.is_active;
   const lowStock = product.stock > 0 && product.stock <= 3;
   const aspectClass = MASONRY_ASPECT_RATIOS[index % MASONRY_ASPECT_RATIOS.length];
+  const productHref = productUrl(product);
   const [saleActive, setSaleActive] = useState(() => isDiscountActiveNow(product));
   const handleSaleExpired = useCallback(() => setSaleActive(false), []);
   const saleEndsAt = product.sale_ends_at;
@@ -43,7 +45,7 @@ export function PerfumeCard({ product, onAddToCart, index = 0 }: PerfumeCardProp
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-cream-border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold/60 hover:shadow-card-soft">
       {/* Imagery with Dynamic Staggered Aspect Ratio */}
-      <Link href={`/product/${product.id}`} className="relative block overflow-hidden bg-brown-deep">
+      <Link href={productHref} className="relative block overflow-hidden bg-brown-deep">
         <div className={`relative w-full ${aspectClass} overflow-hidden bg-gradient-to-br from-brown-deep to-black`}>
           {product.image_url ? (
             <Image
@@ -110,7 +112,7 @@ export function PerfumeCard({ product, onAddToCart, index = 0 }: PerfumeCardProp
           </div>
 
           {/* Product Title */}
-          <Link href={`/product/${product.id}`} className="block">
+          <Link href={productHref} className="block">
             <h3 className="font-serif text-sm sm:text-base md:text-lg font-bold text-brown-deep transition-colors line-clamp-1 sm:line-clamp-2 group-hover:text-brown">
               {product.name}
             </h3>

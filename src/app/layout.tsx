@@ -6,25 +6,23 @@ import { Inter, Playfair_Display } from 'next/font/google';
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://bizzarefragrances.shop'),
   title: {
-    default: 'Bizzare Fragrances (by Bizzare) | Bizarre Perfumes & Fragrances Nigeria',
-    template: '%s | Bizzare Fragrances (by Bizzare) - Bizarre Perfumes Nigeria',
+    default: 'Bizzare Fragrances | Original Imported Perfumes in Nigeria',
+    template: '%s | Bizzare Fragrances',
   },
   description:
-    'Bizzare (Bizarre) Fragrances: 100% authentic imported luxury perfumes with secure Flutterwave checkout, olfactory notes clarity, express nationwide tracked delivery, and concierge support in Nigeria.',
+    'Shop 100% authentic imported perfumes in Nigeria at Bizzare Fragrances - designer, luxury and niche fragrances with secure checkout, olfactory notes clarity, express nationwide tracked delivery and concierge support.',
   keywords: [
     'Bizzare Fragrances',
     'Bizzare Perfumes',
-    'Bizarre Fragrances',
-    'Bizarre Perfumes',
-    'Bizzare Fragrance',
+    'Original Imported Perfumes Nigeria',
     'Luxury Perfume Nigeria',
     'Niche Fragrances Nigeria',
     'Oud Extrait',
     'Artisanal Perfume',
     'Haute Parfumerie',
   ],
-  authors: [{ name: 'Bizzare' }],
-  creator: 'Bizzare',
+  authors: [{ name: 'Bizzare Fragrances' }],
+  creator: 'Bizzare Fragrances',
   icons: {
     icon: '/icon.png',
     shortcut: '/icon.png',
@@ -34,23 +32,23 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_NG',
     url: 'https://bizzarefragrances.shop',
-    siteName: 'Bizzare Fragrances (by Bizzare)',
-    title: 'Bizzare Fragrances (by Bizzare) | Bizarre Perfumes & Fragrances Nigeria',
+    siteName: 'Bizzare Fragrances',
+    title: 'Bizzare Fragrances | Original Imported Perfumes in Nigeria',
     description:
-      'Bizzare (Bizarre) Fragrances: 100% authentic imported luxury perfumes with secure Flutterwave checkout and express nationwide delivery in Nigeria.',
+      'Shop 100% authentic imported perfumes in Nigeria at Bizzare Fragrances with secure checkout and express nationwide delivery.',
     images: [
       {
         url: '/og-logo.png',
         width: 412,
         height: 362,
-        alt: 'Bizzare Fragrances (by Bizzare)',
+        alt: 'Bizzare Fragrances',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Bizzare Fragrances (by Bizzare) | Bizarre Perfumes & Fragrances Nigeria',
-    description: 'Bizzare (Bizarre) Fragrances: 100% authentic imported luxury perfumes in Nigeria.',
+    title: 'Bizzare Fragrances | Original Imported Perfumes in Nigeria',
+    description: 'Shop 100% authentic imported perfumes in Nigeria at Bizzare Fragrances.',
     images: ['/og-logo.png'],
   },
 };
@@ -72,9 +70,15 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Organization',
-              name: 'Bizzare Fragrances (by Bizzare)',
+              name: 'Bizzare Fragrances',
               url: 'https://bizzarefragrances.shop',
               logo: 'https://bizzarefragrances.shop/og-logo.png',
+              contactPoint: {
+                '@type': 'ContactPoint',
+                telephone: '+2349114743607',
+                contactType: 'customer service',
+                availableLanguage: 'English',
+              },
               sameAs: [
                 'https://instagram.com/bizzare_fragrances',
                 'https://wa.me/2349114743607',

@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin', '/api/', '/account'],
+        disallow: ['/admin', '/api/', '/account', '/cart', '/checkout'],
       },
     ],
     sitemap: 'https://bizzarefragrances.shop/sitemap.xml',

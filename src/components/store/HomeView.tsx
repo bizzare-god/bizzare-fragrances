@@ -19,6 +19,7 @@ import { PerfumeCard } from '@/components/store/PerfumeCard';
 import { OrderTracker } from '@/components/store/OrderTracker';
 import { PromoBanner } from '@/components/layout/PromoBanner';
 import { ScentFamily } from '@/types';
+import { productUrl } from '@/lib/seo';
 
 const SCENT_FAMILY_CARDS: Array<{
   family: ScentFamily;
@@ -126,13 +127,13 @@ export function HomeView() {
           <div className="max-w-2xl space-y-7">
             <div className="space-y-3">
               <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-normal text-white">
-                Bizzare Fragrances
+                Original Imported Perfumes in Nigeria
                 <span className="mt-3 block font-sans text-lg sm:text-2xl font-normal tracking-[0.2em] text-brown-warm">
-                  (by Bizzare)
+                  Bizzare Fragrances
                 </span>
               </h1>
               <p className="max-w-xl text-sm sm:text-base leading-7 sm:leading-8 text-cream-light/85 pt-2">
-                Bizzare (Bizzare) Fragrances — your Nigerian home for Bizzare perfumes and Bizarre Fragrances. Curated and directly imported from renowned international perfume houses across France, the UAE, Italy, and beyond. Explore concentrated extraits with notes clarity, escrow checkout, and express nationwide delivery.
+                Bizzare Fragrances — your Nigerian home for original imported perfumes. Curated and directly imported from renowned international perfume houses across France, the UAE, Italy, and beyond. Explore concentrated extraits with notes clarity, escrow checkout, and express nationwide delivery.
               </p>
             </div>
 
@@ -146,7 +147,7 @@ export function HomeView() {
               </Link>
               {heroProduct && (
                 <Link
-                  href={`/product/${heroProduct.id}`}
+                  href={productUrl(heroProduct)}
                   className="inline-flex h-12 items-center rounded-xl border border-white/25 bg-white/5 px-6 text-xs font-semibold uppercase tracking-[0.14em] text-white backdrop-blur transition-all hover:border-brown-warm hover:bg-white/10 hover:text-brown-warm"
                 >
                   View Featured Scent
@@ -306,7 +307,7 @@ export function HomeView() {
           {SCENT_FAMILY_CARDS.map((item) => (
             <Link
               key={item.family}
-              href={`/shop?family=${item.family}`}
+              href={`/perfumes/${item.family.toLowerCase()}`}
               className={`group relative overflow-hidden rounded-2xl border border-cream-border bg-gradient-to-br ${item.gradient} p-6 text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-card-soft`}
             >
               <div className="flex items-center justify-between">

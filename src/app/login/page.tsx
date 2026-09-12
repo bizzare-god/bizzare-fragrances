@@ -177,7 +177,7 @@ function LoginFormContent() {
           <ArrowLeft className="h-3.5 w-3.5" /> Back to storefront
         </button>
         <p className="mt-6 text-[11px] uppercase tracking-[0.28em] text-brown-warm font-mono font-bold">
-          Bizzare Fragrances <span className="text-[10px] normal-case tracking-normal font-normal">(by Bizzare)</span>
+          Bizzare Fragrances
         </p>
         <h1 className="mt-2 font-serif text-3xl font-bold sm:text-4xl">
           {mode === 'login' ? 'Client Sign-In' : 'Create Your Account'}

@@ -9,20 +9,24 @@ import { useStoreContext } from '@/components/providers/StoreProvider';
 import { formatCurrency } from '@/lib/utils';
 import { CountdownTimer, isDiscountActiveNow } from '@/components/store/CountdownTimer';
 import { Product } from '@/types';
+import { productUrl } from '@/lib/seo';
 
 interface ProductDetailViewProps {
   productId: string;
+  initialProduct?: Product;
+  relatedProducts?: Product[];
 }
 
-export function ProductDetailView({ productId }: ProductDetailViewProps) {
+export function ProductDetailView({ productId, initialProduct, relatedProducts }: ProductDetailViewProps) {
   const { products, addToCart } = useStoreContext();
   const [product, setProduct] = useState<Product | null>(() => {
+    if (initialProduct) return initialProduct;
     return products.find((item) => item.id === productId) || null;
   });
   const [saleActive, setSaleActive] = useState<boolean>(() =>
-    products.find((item) => item.id === productId) ? isDiscountActiveNow(products.find((item) => item.id === productId)!) : false
+    initialProduct ? isDiscountActiveNow(initialProduct) : products.find((item) => item.id === productId) ? isDiscountActiveNow(products.find((item) => item.id === productId)!) : false
   );
-  const [loading, setLoading] = useState(!product);
+  const [loading, setLoading] = useState(!initialProduct && !product);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -221,6 +225,53 @@ export function ProductDetailView({ productId }: ProductDetailViewProps) {
           </div>
         </div>
       </section>
+
+      {relatedProducts && relatedProducts.length > 0 && (
+        <section className="mt-16">
+          <h2 className="font-serif text-2xl font-bold text-brown-deep sm:text-3xl">
+            You May Also Like
+          </h2>
+          <ul className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+            {relatedProducts.map((related) => (
+              <li key={related.id}>
+                <Link
+                  href={productUrl(related)}
+                  className="group block overflow-hidden rounded-xl border border-cream-border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold/60 hover:shadow-card-soft"
+                >
+                  <div className="relative aspect-[3/4] bg-brown-deep">
+                    {related.image_url ? (
+                      <Image
+                        src={related.image_url}
+                        alt={related.name}
+                        fill
+                        sizes="(min-width:1024px) 20vw, (min-width:768px) 33vw, 50vw"
+                        loading="lazy"
+                        decoding="async"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center p-3 text-center text-xs text-cream-muted">
+                        {related.name}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <p className="truncate font-serif text-sm font-bold leading-snug text-brown-deep group-hover:text-brown">
+                      {related.name}
+                    </p>
+                    <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-brown-warm text-nowrap overflow-hidden text-ellipsis">
+                      {related.brand}
+                    </p>
+                    <p className="mt-2 font-serif text-sm font-bold text-brown">
+                      {formatCurrency(related.price)}
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

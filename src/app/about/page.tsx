@@ -14,9 +14,9 @@ import {
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About Bizzare Fragrances | Bizarre Perfumes Boutique',
+  title: 'About Bizzare Fragrances | Authentic Luxury Perfume Boutique Nigeria',
   description:
-    'About Bizzare (Bizarre) Fragrances: an artisanal perfumery curating 100% genuinely authentic Bizzare perfumes and Bizarre Fragrances — luxury, niche, and designer scents delivered nationwide in Nigeria.',
+    'About Bizzare Fragrances: an artisanal perfumery curating 100% genuine imported luxury, niche, and designer perfumes delivered nationwide in Nigeria.',
   alternates: { canonical: '/about' },
 };
 
@@ -29,11 +29,11 @@ export default function AboutPage() {
           About The House
         </p>
         <h1 className="mt-3 font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-          A quieter way to experience authentic luxury perfume.
+          About Bizzare Fragrances - Authentic Luxury Perfume Boutique in Nigeria
         </h1>
         <div className="mt-8 space-y-5 text-base leading-8 text-brown-deep/80">
           <p>
-            <strong>Bizzare Fragrances (by Bizzare)</strong> curates and imports 100% genuine, authentic luxury, niche, and designer fragrances directly from prestigious perfume houses and certified distributors across France, the UAE / Middle East, Italy, the UK, and beyond.
+            <strong>Bizzare Fragrances</strong> curates and imports 100% genuine, authentic luxury, niche, and designer fragrances directly from prestigious perfume houses and certified distributors across France, the UAE / Middle East, Italy, the UK, and beyond.
           </p>
           <p>
             Our collection is strictly edited around concentrated, memorable scents: pure oud, velvet Damask rose, smoked amber, radiant Mediterranean citrus, rich bourbon vanilla, sacred woods, and clean skin musks.
