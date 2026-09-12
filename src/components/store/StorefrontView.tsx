@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   ArrowRight,
@@ -114,10 +115,13 @@ function StorefrontContent() {
       {/* HERO SECTION */}
       <section className="relative min-h-[560px] overflow-hidden rounded-3xl bg-black text-white shadow-2xl">
         {heroProduct?.image_url && (
-          <img
+          <Image
             src={heroProduct.image_url}
             alt={heroProduct.name}
-            className="absolute inset-0 h-full w-full object-cover opacity-55"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-55"
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-brown-deep/40" />
@@ -141,7 +145,7 @@ function StorefrontContent() {
             <div className="flex flex-wrap gap-4 pt-2">
               <a
                 href="#shop"
-                className="inline-flex h-12 items-center gap-2 rounded-xl bg-brown-warm px-6 text-xs font-bold uppercase tracking-[0.16em] text-black shadow-lg transition-all hover:bg-cream-light active:scale-[0.98]"
+                className="inline-flex h-12 items-center gap-2 rounded-xl bg-gold-gradient px-6 text-xs font-bold uppercase tracking-[0.16em] text-brown-deep shadow-lg shadow-gold/30 transition-all hover:brightness-110 active:scale-[0.98]"
               >
                 Explore Fragrances
                 <ArrowRight className="h-4 w-4" />
@@ -159,12 +163,14 @@ function StorefrontContent() {
 
           {heroProduct && (
             <div className="hidden justify-self-end rounded-2xl border border-white/15 bg-black/60 p-5 shadow-2xl backdrop-blur-xl md:block">
-              <div className="aspect-[3/4] w-[300px] overflow-hidden rounded-xl bg-brown-deep">
+              <div className="relative aspect-[3/4] w-[300px] overflow-hidden rounded-xl bg-brown-deep">
                 {heroProduct.image_url ? (
-                  <img
+                  <Image
                     src={heroProduct.image_url}
                     alt={heroProduct.name}
-                    className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                    fill
+                    sizes="300px"
+                    className="object-cover transition-transform duration-500 hover:scale-105"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center px-6 text-center font-serif text-2xl text-cream-muted">
@@ -174,7 +180,7 @@ function StorefrontContent() {
               </div>
               <div className="mt-4 flex items-end justify-between gap-4">
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brown-warm">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-gold">
                     Featured Fragrance
                   </p>
                   <h2 className="mt-1 font-serif text-2xl font-bold text-white">{heroProduct.name}</h2>

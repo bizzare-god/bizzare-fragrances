@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Advert } from '@/types';
-import { Megaphone, Clock } from 'lucide-react';
+import { Megaphone, Clock, ArrowRight } from 'lucide-react';
 import { CountdownTimer } from '@/components/store/CountdownTimer';
 
 export function PromoBanner() {
@@ -27,37 +27,50 @@ export function PromoBanner() {
   if (adverts.length === 0) return null;
 
   return (
-    <div className="relative z-40 w-full overflow-hidden bg-gradient-to-r from-black via-brown-espresso to-brown-deep text-white">
-      <div className="mx-auto flex max-w-7xl flex-col gap-1.5 px-4 py-2.5 sm:px-6 lg:px-8">
-        {adverts.map((advert) => (
-          <div
-            key={advert.id}
-            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 text-xs sm:text-sm"
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <Megaphone className="h-4 w-4 shrink-0 text-brown-warm" />
-              <span className="font-serif font-bold tracking-wide truncate">{advert.title}</span>
-              {advert.description && (
-                <span className="max-w-xl truncate text-cream-muted hidden sm:inline">{advert.description}</span>
-              )}
+    <section aria-label="Promotions" className="relative z-20 space-y-3">
+      {adverts.map((advert) => (
+        <div
+          key={advert.id}
+          className="relative overflow-hidden rounded-2xl border border-gold/40 bg-gradient-to-r from-brown-espresso via-brown-deep to-brown-espresso text-white shadow-lg shadow-black/20"
+        >
+          {/* Gold accent edge */}
+          <div className="absolute inset-y-0 left-0 w-1.5 bg-gold-gradient" />
+
+          <div className="relative mx-auto flex max-w-7xl flex-col gap-3 px-6 py-4 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:py-5">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gold/20 text-gold ring-1 ring-gold/40">
+                <Megaphone className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="font-serif text-lg font-extrabold leading-tight tracking-wide sm:text-xl lg:text-2xl">
+                  {advert.title}
+                </p>
+                {advert.description && (
+                  <p className="mt-0.5 hidden max-w-2xl truncate text-xs leading-relaxed text-cream-light/75 sm:block">
+                    {advert.description}
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="flex items-center gap-1.5 font-mono text-[11px] text-amber-300">
-                <Clock className="h-3 w-3" />
-                Ends <CountdownTimer target={advert.ends_at} />
+
+            <div className="flex flex-wrap items-center gap-2.5 lg:shrink-0">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-black/40 px-3.5 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-amber-300 backdrop-blur">
+                <Clock className="h-3.5 w-3.5" />
+                Ends in <CountdownTimer target={advert.ends_at} />
               </span>
               {advert.link_url && (
                 <Link
                   href={advert.link_url}
-                  className="rounded-full bg-brown-warm px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-black shadow-sm transition-colors hover:bg-cream-light"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-gold-gradient px-4 text-[10px] font-bold uppercase tracking-wider text-brown-deep shadow-md shadow-gold/30 transition-all hover:brightness-110 active:scale-[0.98]"
                 >
                   {advert.button_text || 'Shop Now'}
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               )}
             </div>
           </div>
-        ))}
-      </div>
-    </div>
+        </div>
+      ))}
+    </section>
   );
 }

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, ShoppingBag, ShieldCheck, Sparkles, Loader2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useStoreContext } from '@/components/providers/StoreProvider';
@@ -108,9 +109,16 @@ export function ProductDetailView({ productId }: ProductDetailViewProps) {
       </Link>
 
       <section className="mt-6 grid gap-10 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="overflow-hidden rounded-2xl border border-cream-border bg-brown-deep shadow-md">
+        <div className="relative overflow-hidden rounded-2xl border border-cream-border bg-brown-deep shadow-md">
           {product.image_url ? (
-            <img src={product.image_url} alt={product.name} className="aspect-[4/5] h-full w-full object-cover" />
+            <Image
+              src={product.image_url}
+              alt={product.name}
+              fill
+              sizes="(min-width:1024px) 45vw, 100vw"
+              priority
+              className="aspect-[4/5] object-cover"
+            />
           ) : (
             <div className="flex aspect-[4/5] items-center justify-center px-8 text-center font-serif text-2xl text-cream-muted">
               Product image pending

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { ArrowRight, MapPin, Minus, Plus, ShieldCheck, ShoppingBag, Trash2, X } from 'lucide-react';
 import { Product } from '@/types';
 import { formatCurrency } from '@/lib/utils';
@@ -166,9 +167,11 @@ export function CartDrawer({
                   className="grid grid-cols-[72px_1fr_auto] gap-3 rounded-xl border border-cream-border bg-white p-3 shadow-sm"
                 >
                   {product.image_url ? (
-                    <img
+                    <Image
                       src={product.image_url}
                       alt={product.name}
+                      width={72}
+                      height={72}
                       className="h-[72px] w-[72px] rounded-lg object-cover border border-cream-border"
                     />
                   ) : (

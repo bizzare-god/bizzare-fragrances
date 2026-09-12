@@ -26,8 +26,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Please provide your email and 6-digit verification code.' }, { status: 400 });
     }
 
-    if (!newPassword || newPassword.length < 12) {
-      return NextResponse.json({ error: 'Your new password must contain at least 12 characters.' }, { status: 400 });
+    if (!newPassword || newPassword.length < 8) {
+      return NextResponse.json({ error: 'Your new password must contain at least 8 characters.' }, { status: 400 });
     }
 
     // Look for valid matching token
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash new password and update user
-    const passwordHash = await bcrypt.hash(newPassword, 12);
+    const passwordHash = await bcrypt.hash(newPassword, 10);
 
     await prisma.$transaction([
       prisma.user.update({

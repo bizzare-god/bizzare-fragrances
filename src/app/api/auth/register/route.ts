@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (fullName.length < 2 || !/^\S+@\S+\.\S+$/.test(email) || password.length < 12) {
+    if (fullName.length < 2 || !/^\S+@\S+\.\S+$/.test(email) || password.length < 8) {
       return NextResponse.json(
-        { error: 'Provide your name, a valid email, and a password of at least 12 characters.' },
+        { error: 'Provide your name, a valid email, and a password of at least 8 characters.' },
         { status: 400 }
       );
     }
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    const passwordHash = await bcrypt.hash(password, 10);
 
     // All public signups are created as standard client (BUYER) accounts.
     // Elevated roles (VENDOR, COURIER, ADMIN) are exclusively granted by Administrators via /api/admin/users.

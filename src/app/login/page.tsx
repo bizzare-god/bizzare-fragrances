@@ -277,9 +277,9 @@ function LoginFormContent() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={12}
+                minLength={8}
                 className="mt-1.5 h-11 w-full rounded-xl border border-cream-border bg-cream-soft pr-11 pl-3.5 text-sm font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
-                placeholder="At least 12 characters"
+                placeholder="At least 8 characters"
               />
               <button
                 type="button"
@@ -418,7 +418,7 @@ function LoginFormContent() {
 
                 <div>
                   <label className="block font-mono text-xs font-bold uppercase tracking-wider text-brown-deep">
-                    New Password (min 12 characters) *
+                    New Password (min 8 characters) *
                   </label>
                   <div className="relative">
                   <input
@@ -426,9 +426,9 @@ function LoginFormContent() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
-                    minLength={12}
+                    minLength={8}
                     className="mt-1.5 h-11 w-full rounded-xl border border-cream-border bg-cream-soft pr-11 pl-3.5 text-sm font-medium text-brown-deep focus:border-brown focus:bg-white focus:outline-none focus:ring-1 focus:ring-brown"
-                    placeholder="Enter new 12+ character password"
+                    placeholder="Enter new 8+ character password"
                   />
                   <button
                     type="button"

@@ -2,6 +2,7 @@
 
 import React, { useCallback, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Product } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { ArrowUpRight, Sparkles, ShoppingBag, Clock } from 'lucide-react';
@@ -40,16 +41,19 @@ export function PerfumeCard({ product, onAddToCart, index = 0 }: PerfumeCardProp
   );
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-cream-border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brown/40 hover:shadow-card-soft">
+    <article className="group relative flex flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-cream-border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold/60 hover:shadow-card-soft">
       {/* Imagery with Dynamic Staggered Aspect Ratio */}
       <Link href={`/product/${product.id}`} className="relative block overflow-hidden bg-brown-deep">
-        <div className={`w-full ${aspectClass} overflow-hidden bg-gradient-to-br from-brown-deep to-black`}>
+        <div className={`relative w-full ${aspectClass} overflow-hidden bg-gradient-to-br from-brown-deep to-black`}>
           {product.image_url ? (
-            <img
+            <Image
               src={product.image_url}
               alt={product.name}
+              fill
+              sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 50vw"
               loading="lazy"
-              className={`h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 ${
+              decoding="async"
+              className={`object-cover transition-transform duration-500 ease-out group-hover:scale-105 ${
                 purchasable ? 'opacity-95' : 'opacity-40 grayscale'
               }`}
             />
@@ -141,31 +145,29 @@ export function PerfumeCard({ product, onAddToCart, index = 0 }: PerfumeCardProp
               {saleActive ? 'Sale Price' : 'Price'}
             </p>
             {saleActive ? (
-              <div className="flex items-center gap-1.5">
+              <div className="space-y-0.5">
                 <p className="font-serif text-sm sm:text-base md:text-lg font-bold text-red-700 truncate">
                   {formatCurrency(product.price)}
                 </p>
-                <span className="shrink-0 rounded bg-red-100 border border-red-300 px-1 py-0.5 font-mono text-[9px] font-bold text-red-700">
-                  SAVE {product.discount_percent}%
-                </span>
+                <p className="text-[10px] sm:text-[11px] line-through text-brown-deep/45">
+                  {formatCurrency(product.original_price ?? product.price)}
+                </p>
+                <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] font-mono text-red-700">
+                  <span className="shrink-0 rounded bg-red-100 border border-red-300 px-1 py-0.5 text-[9px] font-bold text-red-700">
+                    SAVE {product.discount_percent}%
+                  </span>
+                  {saleEndsAt && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      Ends <CountdownTimer target={saleEndsAt} onExpire={handleSaleExpired} />
+                    </span>
+                  )}
+                </p>
               </div>
             ) : (
               <p className="font-serif text-sm sm:text-base md:text-lg font-bold text-brown truncate">
                 {formatCurrency(product.price)}
               </p>
-            )}
-            {saleActive && (
-              <>
-                <p className="text-[10px] sm:text-[11px] line-through text-brown-deep/45">
-                  {formatCurrency(product.original_price ?? product.price)}
-                </p>
-                {saleEndsAt && (
-                  <p className="flex items-center gap-1 text-[10px] font-mono text-red-700">
-                    <Clock className="h-3 w-3" />
-                    Ends <CountdownTimer target={saleEndsAt} onExpire={handleSaleExpired} />
-                  </p>
-                )}
-              </>
             )}
           </div>
 

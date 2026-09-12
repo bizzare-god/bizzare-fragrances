@@ -2,6 +2,7 @@
 
 import React, { useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight,
   Headphones,
@@ -16,6 +17,7 @@ import {
 import { useStoreContext } from '@/components/providers/StoreProvider';
 import { PerfumeCard } from '@/components/store/PerfumeCard';
 import { OrderTracker } from '@/components/store/OrderTracker';
+import { PromoBanner } from '@/components/layout/PromoBanner';
 import { ScentFamily } from '@/types';
 
 const SCENT_FAMILY_CARDS: Array<{
@@ -103,24 +105,25 @@ export function HomeView() {
 
   return (
     <div className="pb-16 text-brown-deep space-y-16">
+      {/* ACTIVE PROMOTIONS / ADVERT BANNERS */}
+      <PromoBanner />
+
       {/* HERO SHOWCASE */}
       <section className="relative min-h-[560px] overflow-hidden rounded-3xl bg-black text-white shadow-2xl">
         {heroProduct?.image_url && (
-          <img
+          <Image
             src={heroProduct.image_url}
             alt={heroProduct.name}
-            className="absolute inset-0 h-full w-full object-cover opacity-50"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-50"
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-brown-deep/40" />
 
         <div className="relative mx-auto grid min-h-[560px] max-w-7xl items-center gap-10 px-6 py-16 sm:px-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-12">
           <div className="max-w-2xl space-y-7">
-            <div className="inline-flex items-center gap-2 rounded-full border border-brown-warm/60 bg-black/60 px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.24em] text-brown-warm backdrop-blur">
-              <ShieldCheck className="h-3.5 w-3.5 text-brown-warm" />
-              100% Genuine Imported Luxury Perfumes
-            </div>
-
             <div className="space-y-3">
               <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-normal text-white">
                 Bizzare Fragrances
@@ -136,7 +139,7 @@ export function HomeView() {
             <div className="flex flex-wrap gap-3.5 pt-2">
               <Link
                 href="/shop"
-                className="inline-flex h-12 items-center gap-2 rounded-xl bg-brown-warm px-6 text-xs font-bold uppercase tracking-[0.16em] text-black shadow-lg transition-all hover:bg-cream-light active:scale-[0.98]"
+                className="inline-flex h-12 items-center gap-2 rounded-xl bg-gold-gradient px-6 text-xs font-bold uppercase tracking-[0.16em] text-brown-deep shadow-lg shadow-gold/30 transition-all hover:brightness-110 active:scale-[0.98]"
               >
                 <span>Explore Full Collection</span>
                 <ArrowRight className="h-4 w-4" />
@@ -155,12 +158,14 @@ export function HomeView() {
           {/* Featured Fragrance Card (Newest Upload) */}
           {heroProduct && (
             <div className="hidden justify-self-end rounded-2xl border border-white/15 bg-black/65 p-5 shadow-2xl backdrop-blur-xl md:block max-w-[320px]">
-              <div className="aspect-[3/4] w-[280px] overflow-hidden rounded-xl bg-brown-deep">
+              <div className="relative aspect-[3/4] w-[280px] overflow-hidden rounded-xl bg-brown-deep">
                 {heroProduct.image_url ? (
-                  <img
+                  <Image
                     src={heroProduct.image_url}
                     alt={heroProduct.name}
-                    className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                    fill
+                    sizes="280px"
+                    className="object-cover transition-transform duration-500 hover:scale-105"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center px-6 text-center font-serif text-2xl text-cream-muted">
@@ -170,7 +175,7 @@ export function HomeView() {
               </div>
               <div className="mt-4 flex items-end justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brown-warm">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-gold">
                     Newly Added
                   </p>
                   <h2 className="mt-1 font-serif text-xl font-bold text-white truncate">{heroProduct.name}</h2>
@@ -208,7 +213,7 @@ export function HomeView() {
             const Icon = item.icon;
             return (
               <div key={item.title} className="flex gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brown/10 text-brown">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-gold-dark">
                   <Icon className="h-5 w-5" />
                 </div>
                 <div>
@@ -249,7 +254,7 @@ export function HomeView() {
         <section className="space-y-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.28em] text-brown-warm">
+              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.28em] text-gold-gradient">
                 Latest Additions
               </p>
               <h2 className="mt-1 font-serif text-3xl sm:text-4xl font-bold text-brown-deep">
