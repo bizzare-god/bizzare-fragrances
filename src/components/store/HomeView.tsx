@@ -18,7 +18,7 @@ import { useStoreContext } from '@/components/providers/StoreProvider';
 import { PerfumeCard } from '@/components/store/PerfumeCard';
 import { OrderTracker } from '@/components/store/OrderTracker';
 import { PromoBanner } from '@/components/layout/PromoBanner';
-import { ScentFamily } from '@/types';
+import { Product, ScentFamily } from '@/types';
 import { productUrl } from '@/lib/seo';
 
 const SCENT_FAMILY_CARDS: Array<{
@@ -72,8 +72,8 @@ const SCENT_FAMILY_CARDS: Array<{
   },
 ];
 
-export function HomeView() {
-  const { products, orders, addToCart, currentUser, isAuthenticated } = useStoreContext();
+export function HomeView({ initialProducts = [] }: { initialProducts: Product[] }) {
+  const { orders, addToCart, currentUser, isAuthenticated } = useStoreContext();
 
   const buyerOrders =
     isAuthenticated && currentUser
@@ -82,27 +82,27 @@ export function HomeView() {
 
   // Automatically select the most recently uploaded perfume as the featured fragrance
   const heroProduct = useMemo(() => {
-    if (!products || products.length === 0) return null;
+    if (!initialProducts || initialProducts.length === 0) return null;
     return (
-      [...products].sort((a, b) => {
+      [...initialProducts].sort((a, b) => {
         const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
         const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
         return timeB - timeA;
-      })[0] ?? products[0]
+      })[0] ?? initialProducts[0]
     );
-  }, [products]);
+  }, [initialProducts]);
 
   // Spotlight newest arrivals (up to 4 perfumes)
   const spotlightProducts = useMemo(() => {
-    if (!products) return [];
-    return [...products]
+    if (!initialProducts) return [];
+    return [...initialProducts]
       .sort((a, b) => {
         const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
         const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
         return timeB - timeA;
       })
       .slice(0, 4);
-  }, [products]);
+  }, [initialProducts]);
 
   return (
     <div className="pb-16 text-brown-deep space-y-16">
@@ -266,7 +266,7 @@ export function HomeView() {
               href="/shop"
               className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.16em] text-brown hover:text-brown-hover transition-colors"
             >
-              <span>Explore All Fragrances ({products.length})</span>
+              <span>Explore All Fragrances ({initialProducts.length})</span>
               <ChevronRight className="h-4 w-4" />
             </Link>
           </div>

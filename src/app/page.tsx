@@ -1,5 +1,10 @@
 import type { Metadata } from 'next';
+import { prisma } from '@/lib/db';
+import { productDto } from '@/lib/serializers';
+import { getStorewideSale } from '@/lib/promo';
 import { HomeView } from '@/components/store/HomeView';
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'Original Imported Perfumes in Nigeria',
@@ -33,6 +38,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
-  return <HomeView />;
+export default async function HomePage() {
+  const [products, storewide] = await Promise.all([
+    prisma.product.findMany({
+      where: { isActive: true },
+      include: { category: true },
+      orderBy: { createdAt: 'desc' },
+    }),
+    getStorewideSale(),
+  ]);
+  const initialProducts = products.map((product) => productDto(product, storewide));
+
+  return <HomeView initialProducts={initialProducts} />;
 }

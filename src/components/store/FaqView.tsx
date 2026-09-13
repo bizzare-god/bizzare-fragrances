@@ -132,10 +132,9 @@ function buildFaqSchema() {
 export function FaqView() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All Questions');
   const [searchQuery, setSearchQuery] = useState('');
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>({
-    'dispatch-process': true,
-    'concentration-longevity': true,
-  });
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(FAQ_DATA.map((item) => [item.id, true]))
+  );
 
   const toggleItem = (id: string) => {
     setOpenItems((prev) => ({
