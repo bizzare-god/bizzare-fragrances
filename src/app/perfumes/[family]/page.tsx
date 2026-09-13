@@ -6,13 +6,19 @@ import { productDto } from '@/lib/serializers';
 import { getStorewideSale } from '@/lib/promo';
 import { CrawlableProductList } from '@/components/seo/CrawlableProductList';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
-import { FAMILY_NAME, FAMILY_META, breadcrumbJsonLd, isFamilySlug } from '@/lib/seo';
+import { FAMILY_NAME, FAMILY_META, FAMILY_SLUGS, breadcrumbJsonLd, isFamilySlug } from '@/lib/seo';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://bizzarefragrances.shop';
 
 export const revalidate = 300;
 
 export const dynamicParams = true;
+
+export function generateStaticParams() {
+  return FAMILY_SLUGS.map((slug) => ({
+    family: slug,
+  }));
+}
 
 interface FamilyPageProps {
   params: { family: string };
@@ -42,7 +48,22 @@ export async function generateMetadata({ params }: FamilyPageProps): Promise<Met
   return { title: 'Category Not Found | Bizzare Fragrances' };
 }
 
-import { getActiveProductsServer } from '@/lib/serverProducts';
+async function getFamilyProducts(familySlugKey: keyof typeof FAMILY_NAME) {
+  try {
+    const [products, storewide] = await Promise.all([
+      prisma.product.findMany({
+        where: { isActive: true, scentFamily: FAMILY_NAME[familySlugKey] },
+        include: { category: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+      getStorewideSale(),
+    ]);
+    return products.map((product) => productDto(product, storewide));
+  } catch (error) {
+    console.error('[Family Page] Failed to load products:', error);
+    return [];
+  }
+}
 
 export default async function FamilyPage({ params }: FamilyPageProps) {
   const slug = params.family.toLowerCase();
@@ -51,8 +72,7 @@ export default async function FamilyPage({ params }: FamilyPageProps) {
 
   const meta = FAMILY_META[familyKey];
   const familyName = FAMILY_NAME[familyKey];
-  const allProducts = await getActiveProductsServer();
-  const products = allProducts.filter((p) => p.scent_family === familyName);
+  const products = await getFamilyProducts(familyKey);
   const scentFamilies = Object.keys(FAMILY_META) as (keyof typeof FAMILY_META)[];
 
   const breadcrumbItems = [

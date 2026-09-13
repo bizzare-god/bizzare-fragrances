@@ -7,19 +7,41 @@ import { ProductDetailView } from '@/components/store/ProductDetailView';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { slugify, productUrl, productJsonLd, breadcrumbJsonLd } from '@/lib/seo';
 
-import { getActiveProductsServer } from '@/lib/serverProducts';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://bizzarefragrances.shop';
 
 export const revalidate = 300;
 export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const products = await getProducts();
+  return products.map((product) => ({
+    slug: slugify(product.name),
+  }));
+}
 
 interface ProductPageProps {
   params: { slug: string };
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://bizzarefragrances.shop';
+async function getProducts() {
+  try {
+    const [products, storewide] = await Promise.all([
+      prisma.product.findMany({
+        where: { isActive: true },
+        include: { category: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+      getStorewideSale(),
+    ]);
+    return products.map((product) => productDto(product, storewide));
+  } catch (error) {
+    console.error('[Product Page] Failed to load products:', error);
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const products = await getActiveProductsServer();
+  const products = await getProducts();
   const product = products.find((item) => slugify(item.name) === params.slug) || null;
 
   if (!product) {
@@ -66,7 +88,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const products = await getActiveProductsServer();
+  const products = await getProducts();
   const product = products.find((item) => slugify(item.name) === params.slug) || null;
   if (!product) return notFound();
 
