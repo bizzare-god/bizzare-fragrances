@@ -91,7 +91,7 @@ export default function RootLayout({
       <body className="bg-cream-soft text-brown-deep antialiased">
         {/* Google tag (gtag.js) */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-LCX4WEH0H4"
+          src="https://www.googletagmanager.com/gtag/js?id=G-PXQ94SE7R8"
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -100,7 +100,7 @@ export default function RootLayout({
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
 
-            gtag('config', 'G-LCX4WEH0H4');
+            gtag('config', 'G-PXQ94SE7R8');
           `}
         </Script>
 
