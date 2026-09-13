@@ -132,9 +132,12 @@ function buildFaqSchema() {
 export function FaqView() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All Questions');
   const [searchQuery, setSearchQuery] = useState('');
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>({
-    'dispatch-process': true,
-    'concentration-longevity': true,
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>(() => {
+    const allOpen: Record<string, boolean> = {};
+    FAQ_DATA.forEach((item) => {
+      allOpen[item.id] = true;
+    });
+    return allOpen;
   });
 
   const toggleItem = (id: string) => {
@@ -178,15 +181,15 @@ export function FaqView() {
       />
 
       {/* Header Banner */}
-      <div className="max-w-2xl">
+      <div className="max-w-3xl">
         <p className="text-[11px] uppercase tracking-[0.28em] text-brown-warm font-mono font-bold">
           Frequently Asked Questions
         </p>
-        <h1 className="mt-3 font-serif text-4xl sm:text-5xl font-bold leading-tight">
-          Answers & Guidance for Clients
+        <h1 className="mt-3 font-serif text-3xl sm:text-5xl font-bold leading-tight">
+          Bizzare Fragrances FAQ — Perfume Delivery, Authenticity & Orders in Nigeria
         </h1>
         <p className="mt-4 text-base leading-8 text-brown-deep/75">
-          Everything you need to know about our artisanal extraits, nationwide delivery, secure Flutterwave checkout, and boutique customer service.
+          Everything you need to know about our authentic imported luxury extraits, nationwide delivery timelines across Nigeria, secure Flutterwave checkout, and boutique concierge customer service.
         </p>
       </div>
 
@@ -305,15 +308,11 @@ export function FaqView() {
                   </div>
                 </button>
 
-                <div
-                  className={`grid transition-all duration-200 ease-in-out ${
-                    isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-                  }`}
-                >
-                  <div className="overflow-hidden border-t border-cream-border/60 bg-cream-soft/20 px-5 pb-6 pt-4 sm:px-6">
+                {isOpen && (
+                  <div className="border-t border-cream-border/60 bg-cream-soft/20 px-5 pb-6 pt-4 sm:px-6 animate-in fade-in-50 duration-150">
                     <p className="text-sm leading-7 text-brown-deep/80">{item.answer}</p>
                   </div>
-                </div>
+                )}
               </div>
             );
           })

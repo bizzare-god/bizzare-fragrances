@@ -1,66 +1,46 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
-import { prisma } from '@/lib/db';
-import { productDto } from '@/lib/serializers';
-import { getStorewideSale } from '@/lib/promo';
-import { isFamilySlug } from '@/lib/seo';
 import { CollectionView } from '@/components/store/CollectionView';
+import { getActiveProductsServer } from '@/lib/serverProducts';
+import { itemListJsonLd } from '@/lib/seo';
 
 export const revalidate = 300;
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://bizzarefragrances.shop';
+
 export const metadata: Metadata = {
-  title: 'Perfumes in Nigeria',
+  title: 'Original Imported Perfumes in Nigeria | Bizzare Fragrances Collection',
   description:
-    'Browse the full collection of authentic imported perfumes in Nigeria from Bizzare Fragrances. Filter by scent family, price and more with nationwide delivery.',
+    'Browse our complete catalogue of 100% authentic original imported perfumes in Nigeria. Filter by woody, floral, oriental, gourmand, fresh, and citrus scent families with express nationwide tracked delivery.',
   alternates: {
     canonical: '/shop',
   },
   openGraph: {
     type: 'website',
-    title: 'Perfumes in Nigeria | Bizzare Fragrances',
+    title: 'Original Imported Perfumes in Nigeria | Bizzare Fragrances',
     description:
       'Browse the full collection of authentic imported perfumes in Nigeria from Bizzare Fragrances. Filter by scent family, price and more with nationwide delivery.',
-    url: 'https://bizzarefragrances.shop/shop',
+    url: `${BASE_URL}/shop`,
     siteName: 'Bizzare Fragrances',
-    images: [{ url: '/og-logo.png', width: 412, height: 362, alt: 'Bizzare Fragrances' }],
+    images: [{ url: '/og-logo.png', width: 412, height: 362, alt: 'Bizzare Fragrances Collection' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Perfumes in Nigeria | Bizzare Fragrances',
-    description: 'Browse authentic imported perfumes in Nigeria from Bizzare Fragrances.',
+    title: 'Original Imported Perfumes in Nigeria | Bizzare Fragrances',
+    description: 'Browse authentic imported perfumes in Nigeria from Bizzare Fragrances with nationwide delivery.',
     images: ['/og-logo.png'],
   },
 };
 
-async function getShopProducts() {
-  try {
-    const [products, storewide] = await Promise.all([
-      prisma.product.findMany({
-        where: { isActive: true },
-        include: { category: true },
-        orderBy: { createdAt: 'desc' },
-      }),
-      getStorewideSale(),
-    ]);
-    return products.map((product) => productDto(product, storewide));
-  } catch (error) {
-    console.error('[Shop Page] Failed to load products:', error);
-    return [];
-  }
-}
+export default async function ShopPage() {
+  const products = await getActiveProductsServer();
 
-interface ShopPageProps {
-  searchParams: { family?: string | string[]; q?: string | string[] };
-}
-
-export default async function ShopPage({ searchParams }: ShopPageProps) {
-  const family = searchParams?.family;
-  if (family && !Array.isArray(family) && isFamilySlug(family.toLowerCase())) {
-    redirect(`/perfumes/${family.toLowerCase()}`);
-  }
-
-  const products = await getShopProducts();
-  const initialSearchQuery = searchParams?.q && !Array.isArray(searchParams.q) ? searchParams.q : '';
-
-  return <CollectionView initialProducts={products} initialSearchQuery={initialSearchQuery} />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd(products, BASE_URL)) }}
+      />
+      <CollectionView initialProducts={products} />
+    </>
+  );
 }

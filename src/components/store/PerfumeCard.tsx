@@ -113,9 +113,9 @@ export function PerfumeCard({ product, onAddToCart, index = 0 }: PerfumeCardProp
 
           {/* Product Title */}
           <Link href={productHref} className="block">
-            <h3 className="font-serif text-sm sm:text-base md:text-lg font-bold text-brown-deep transition-colors line-clamp-1 sm:line-clamp-2 group-hover:text-brown">
+            <h2 className="font-serif text-sm sm:text-base md:text-lg font-bold text-brown-deep transition-colors line-clamp-1 sm:line-clamp-2 group-hover:text-brown">
               {product.name}
-            </h3>
+            </h2>
           </Link>
 
           {/* Olfactory Accords / Fragrance Notes */}

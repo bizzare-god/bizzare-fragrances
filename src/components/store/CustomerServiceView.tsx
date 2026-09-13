@@ -91,7 +91,7 @@ export function CustomerServiceView() {
     <div className="mx-auto max-w-5xl py-12 px-4 sm:px-6 lg:py-16 text-brown-deep">
       <div className="max-w-2xl">
         <p className="text-[11px] uppercase tracking-[0.28em] text-brown-warm font-mono font-bold">Concierge & Client Care</p>
-        <h1 className="mt-3 font-serif text-4xl sm:text-5xl font-bold">Bizzare Fragrances Customer Service - Perfume Delivery & Orders</h1>
+        <h1 className="mt-3 font-serif text-3xl sm:text-5xl font-bold">Bizzare Fragrances Customer Service & Perfume Consultation</h1>
         <p className="mt-5 text-base leading-8 text-brown-deep/70">
           Connect directly with our boutique team for olfactory consultations, bespoke curation, direct order inquiries, and instant delivery updates across our official channels.
         </p>

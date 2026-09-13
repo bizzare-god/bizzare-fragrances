@@ -131,3 +131,18 @@ export function breadcrumbJsonLd(items: { name: string; url: string }[]): Record
     })),
   };
 }
+
+export function itemListJsonLd(products: Product[], baseUrl: string): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Original Imported Perfumes in Nigeria',
+    description: 'Authentic imported designer, luxury, and niche perfumes in Nigeria from Bizzare Fragrances.',
+    itemListElement: products.map((product, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: `${product.name} - ${product.brand}`,
+      url: `${baseUrl}${productUrl(product)}`,
+    })),
+  };
+}

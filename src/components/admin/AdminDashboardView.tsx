@@ -537,6 +537,9 @@ export function AdminDashboardView({
                 <h1 className="font-serif text-2xl font-bold tracking-wide text-white sm:text-3xl">
                   BIZZARE FRAGRANCES STUDIO
                 </h1>
+                <span className="rounded-md border border-brown-warm/30 bg-brown-warm/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-widest text-brown-warm">
+                  Boutique Management
+                </span>
               </div>
               <p className="mt-1 text-xs text-cream-muted sm:text-sm">
                 Direct-to-consumer boutique control: manage exclusive fragrance creations, track client orders, and fulfill shipments.

@@ -72,8 +72,14 @@ const SCENT_FAMILY_CARDS: Array<{
   },
 ];
 
-export function HomeView() {
-  const { products, orders, addToCart, currentUser, isAuthenticated } = useStoreContext();
+interface HomeViewProps {
+  initialProducts?: import('@/types').Product[];
+}
+
+export function HomeView({ initialProducts = [] }: HomeViewProps) {
+  const { products: contextProducts, orders, addToCart, currentUser, isAuthenticated } = useStoreContext();
+
+  const products = contextProducts && contextProducts.length > 0 ? contextProducts : initialProducts;
 
   const buyerOrders =
     isAuthenticated && currentUser
@@ -133,7 +139,7 @@ export function HomeView() {
                 </span>
               </h1>
               <p className="max-w-xl text-sm sm:text-base leading-7 sm:leading-8 text-cream-light/85 pt-2">
-                Bizzare Fragrances is your Nigerian home for original imported perfumes, designer perfumes and niche fragrance brands. Curated and directly imported from renowned perfume houses across France, the UAE, Italy, and beyond - shop authentic fragrances online with secure Flutterwave checkout and express nationwide delivery across Nigeria.
+                Discover 100% original imported perfumes in Nigeria from Bizzare Fragrances. We specialize in authentic designer perfumes, luxury niche fragrances, and concentrated extraits directly imported from renowned international perfume houses across France, the UAE, Italy, and the UK. Enjoy full olfactory notes clarity, secure checkout, and express tracked delivery nationwide across Lagos, Abuja, and all 36 states.
               </p>
             </div>
 

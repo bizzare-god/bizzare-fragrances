@@ -220,7 +220,7 @@ export function ProductDetailView({ productId, initialProduct, relatedProducts }
             </div>
             <div className="flex items-start gap-3">
               <Sparkles className="mt-0.5 h-5 w-5 text-brown" />
-              <p className="text-xs leading-5 text-brown-deep/70">Protective luxury packaging and direct tracked fulfillment by Bizzare.</p>
+              <p className="text-xs leading-5 text-brown-deep/70">Protective luxury packaging and direct tracked fulfillment by Bizzare Fragrances.</p>
             </div>
           </div>
         </div>

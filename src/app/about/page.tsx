@@ -14,9 +14,9 @@ import {
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About Bizzare Fragrances | Authentic Luxury Perfume Boutique Nigeria',
+  title: 'About Bizzare Fragrances — Authentic Perfumes in Nigeria',
   description:
-    'About Bizzare Fragrances: an artisanal perfumery curating 100% genuine imported luxury, niche, and designer perfumes delivered nationwide in Nigeria.',
+    'About Bizzare Fragrances: an authentic fragrance boutique in Nigeria curating 100% genuine imported luxury, niche, and designer perfumes delivered nationwide.',
   alternates: { canonical: '/about' },
 };
 
@@ -28,9 +28,12 @@ export default function AboutPage() {
         <p className="text-[11px] uppercase tracking-[0.28em] text-brown-warm font-mono font-bold">
           About The House
         </p>
-        <h1 className="mt-3 font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-          About Bizzare Fragrances - Authentic Luxury Perfume Boutique in Nigeria
+        <h1 className="mt-3 font-serif text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+          About Bizzare Fragrances — Authentic Perfumes in Nigeria
         </h1>
+        <p className="mt-3 font-serif text-lg sm:text-xl text-brown-warm font-medium">
+          A quieter, more authentic way to experience imported luxury perfume in Nigeria.
+        </p>
         <div className="mt-8 space-y-5 text-base leading-8 text-brown-deep/80">
           <p>
             <strong>Bizzare Fragrances</strong> curates and imports 100% genuine, authentic luxury, niche, and designer fragrances directly from prestigious perfume houses and certified distributors across France, the UAE / Middle East, Italy, the UK, and beyond.

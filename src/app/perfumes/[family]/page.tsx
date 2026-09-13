@@ -42,22 +42,7 @@ export async function generateMetadata({ params }: FamilyPageProps): Promise<Met
   return { title: 'Category Not Found | Bizzare Fragrances' };
 }
 
-async function getFamilyProducts(familySlugKey: keyof typeof FAMILY_NAME) {
-  try {
-    const [products, storewide] = await Promise.all([
-      prisma.product.findMany({
-        where: { isActive: true, scentFamily: FAMILY_NAME[familySlugKey] },
-        include: { category: true },
-        orderBy: { createdAt: 'desc' },
-      }),
-      getStorewideSale(),
-    ]);
-    return products.map((product) => productDto(product, storewide));
-  } catch (error) {
-    console.error('[Family Page] Failed to load products:', error);
-    return [];
-  }
-}
+import { getActiveProductsServer } from '@/lib/serverProducts';
 
 export default async function FamilyPage({ params }: FamilyPageProps) {
   const slug = params.family.toLowerCase();
@@ -66,7 +51,8 @@ export default async function FamilyPage({ params }: FamilyPageProps) {
 
   const meta = FAMILY_META[familyKey];
   const familyName = FAMILY_NAME[familyKey];
-  const products = await getFamilyProducts(familyKey);
+  const allProducts = await getActiveProductsServer();
+  const products = allProducts.filter((p) => p.scent_family === familyName);
   const scentFamilies = Object.keys(FAMILY_META) as (keyof typeof FAMILY_META)[];
 
   const breadcrumbItems = [
@@ -81,6 +67,25 @@ export default async function FamilyPage({ params }: FamilyPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd(breadcrumbItems)) }}
       />
+      {products.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'ItemList',
+              name: meta.h1,
+              description: meta.description,
+              itemListElement: products.map((product, index) => ({
+                '@type': 'ListItem',
+                position: index + 1,
+                name: `${product.name} - ${product.brand}`,
+                url: `${BASE_URL}/products/${product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`,
+              })),
+            }),
+          }}
+        />
+      )}
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <Breadcrumbs items={breadcrumbItems} />
         <header className="mb-6">

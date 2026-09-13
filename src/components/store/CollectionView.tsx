@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Headphones,
   Search,
@@ -14,6 +14,7 @@ import {
 import { useStoreContext } from '@/components/providers/StoreProvider';
 import { PerfumeCard } from '@/components/store/PerfumeCard';
 import { Product, ScentFamily } from '@/types';
+import { FAMILY_NAME, FAMILY_SLUGS } from '@/lib/seo';
 
 const families: (ScentFamily | 'ALL')[] = [
   'ALL',
@@ -33,25 +34,32 @@ const priceBands = [
   { label: '₦300k+', min: 300000, max: Number.POSITIVE_INFINITY },
 ];
 
-interface CollectionContentProps {
+interface CollectionViewProps {
   initialProducts?: Product[];
-  initialSearchQuery?: string;
 }
 
-function CollectionContent({ initialProducts = [], initialSearchQuery = '' }: CollectionContentProps) {
+function CollectionContent({ initialProducts = [] }: CollectionViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { products: contextProducts, addToCart, isLoading, dataError } = useStoreContext();
 
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const products = contextProducts && contextProducts.length > 0 ? contextProducts : initialProducts;
+
   const [selectedFamily, setSelectedFamily] = useState<ScentFamily | 'ALL'>('ALL');
   const [selectedPrice, setSelectedPrice] = useState(priceBands[0].label);
-  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+  const [searchQuery, setSearchQuery] = useState('');
 
+  // Sync state with URL search query param and family param
   useEffect(() => {
-    if (!isLoading && !dataError && contextProducts.length > 0) {
-      setProducts(contextProducts);
+    const q = searchParams.get('q');
+    if (q !== null) {
+      setSearchQuery(q);
     }
-  }, [isLoading, dataError, contextProducts]);
+    const family = searchParams.get('family');
+    if (family && families.includes(family as ScentFamily)) {
+      setSelectedFamily(family as ScentFamily);
+    }
+  }, [searchParams]);
 
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
@@ -91,6 +99,8 @@ function CollectionContent({ initialProducts = [], initialSearchQuery = '' }: Co
   const hasActiveFilters =
     selectedFamily !== 'ALL' || selectedPrice !== priceBands[0].label || searchQuery.trim().length > 0;
 
+  const showLoading = isLoading && products.length === 0;
+
   return (
     <div className="pb-16 text-brown-deep space-y-8">
       {/* COLLECTION HEADER */}
@@ -98,13 +108,13 @@ function CollectionContent({ initialProducts = [], initialSearchQuery = '' }: Co
         <div className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-brown/20 bg-cream-soft px-3.5 py-1 font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.24em] text-brown">
             <Sparkles className="h-3.5 w-3.5 text-brown-warm" />
-            Imported Haute Parfumerie Catalog
+            100% Genuine Imported Fragrances
           </div>
           <h1 className="mt-3 font-serif text-3xl sm:text-5xl font-bold leading-tight text-brown-deep">
-            Original Imported Perfumes in Nigeria - Bizzare Fragrances Collection
+            Original Imported Perfumes in Nigeria — Bizzare Fragrances Collection
           </h1>
           <p className="mt-3 text-sm sm:text-base leading-relaxed text-brown-deep/75 max-w-2xl">
-            Browse the complete catalogue of 100% authentic, imported luxury and niche perfumes — original fragrances sourced from prestigious houses across France, the UAE, Italy, and the UK. Filter by olfactory family, price range, or signature notes.
+            Browse our complete catalogue of 100% authentic, original imported designer and niche perfumes in Nigeria. Filter by olfactory family, price range, or signature notes with direct tracked delivery nationwide across Lagos, Abuja, and all Nigerian states.
           </p>
         </div>
       </div>
@@ -150,25 +160,46 @@ function CollectionContent({ initialProducts = [], initialSearchQuery = '' }: Co
             </div>
           </div>
 
-          {/* Scent Family Category Filter Chips (Touch-scrollable on mobile/tablet) */}
+          {/* Scent Family Category Filter Chips (Crawlable indexable links + in-place active states) */}
           <div className="flex items-center gap-1.5 sm:gap-2 pt-2 border-t border-cream-border/60 overflow-x-auto no-scrollbar scroll-smooth -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap">
             <span className="font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-brown-deep/50 mr-0.5 shrink-0">
-              Family:
+              Categories:
             </span>
-            {families.map((family) => (
-              <button
-                key={family}
-                type="button"
-                onClick={() => setSelectedFamily(family)}
-                className={`shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all active:scale-95 ${
-                  selectedFamily === family
-                    ? 'bg-brown text-white shadow-sm'
-                    : 'border border-cream-border bg-cream-soft text-brown-deep/70 hover:border-brown hover:bg-white hover:text-brown-deep'
-                }`}
-              >
-                {family === 'ALL' ? 'All Families' : family}
-              </button>
-            ))}
+            <button
+              type="button"
+              onClick={() => setSelectedFamily('ALL')}
+              className={`shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all active:scale-95 ${
+                selectedFamily === 'ALL'
+                  ? 'bg-brown text-white shadow-sm'
+                  : 'border border-cream-border bg-cream-soft text-brown-deep/70 hover:border-brown hover:bg-white hover:text-brown-deep'
+              }`}
+            >
+              All Perfumes
+            </button>
+            {FAMILY_SLUGS.map((slug) => {
+              const name = FAMILY_NAME[slug];
+              const isSelected = selectedFamily === name;
+              return (
+                <Link
+                  key={slug}
+                  href={`/perfumes/${slug}`}
+                  onClick={(e) => {
+                    // Quick in-place filter when already on shop page
+                    if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                      e.preventDefault();
+                      setSelectedFamily(name as ScentFamily);
+                    }
+                  }}
+                  className={`shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all active:scale-95 ${
+                    isSelected
+                      ? 'bg-brown text-white shadow-sm'
+                      : 'border border-cream-border bg-cream-soft text-brown-deep/70 hover:border-brown hover:bg-white hover:text-brown-deep'
+                  }`}
+                >
+                  {name}
+                </Link>
+              );
+            })}
 
             {hasActiveFilters && (
               <button
@@ -191,26 +222,18 @@ function CollectionContent({ initialProducts = [], initialSearchQuery = '' }: Co
           </p>
         </div>
 
-        {/* PRODUCTS MASONRY GRID (2-Col Mobile, 3-Col iPad/Tablet, 4-Col Wide Desktop) */}
-        {filteredProducts.length > 0 ? (
-          <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6 [column-fill:_balance]">
-            {filteredProducts.map((product, index) => (
-              <div key={product.id} className="break-inside-avoid mb-3 sm:mb-4 md:mb-5 lg:mb-6">
-                <PerfumeCard product={product} onAddToCart={addToCart} index={index} />
-              </div>
-            ))}
-          </div>
-        ) : isLoading ? (
+        {/* PRODUCTS MASONRY GRID (Crawlable HTML with <h2>, <a>, <img>, price) */}
+        {showLoading ? (
           <div className="rounded-2xl border border-cream-border bg-white px-6 py-20 text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-brown border-t-transparent" />
             <p className="mt-3 text-sm font-serif font-bold text-brown-deep">Loading fragrance collection...</p>
           </div>
-        ) : dataError ? (
+        ) : dataError && products.length === 0 ? (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-16 text-center">
             <h3 className="font-serif text-2xl font-bold text-amber-900">Catalog Unavailable</h3>
             <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-amber-800/80">{dataError}</p>
           </div>
-        ) : (
+        ) : filteredProducts.length === 0 ? (
           <div className="rounded-2xl border border-cream-border bg-white px-6 py-20 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-cream-border bg-cream-soft text-brown">
               <Search className="h-6 w-6" />
@@ -229,6 +252,14 @@ function CollectionContent({ initialProducts = [], initialSearchQuery = '' }: Co
                 <span>Clear All Filters</span>
               </button>
             </div>
+          </div>
+        ) : (
+          <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6 [column-fill:_balance]">
+            {filteredProducts.map((product, index) => (
+              <div key={product.id} className="break-inside-avoid mb-3 sm:mb-4 md:mb-5 lg:mb-6">
+                <PerfumeCard product={product} onAddToCart={addToCart} index={index} />
+              </div>
+            ))}
           </div>
         )}
       </section>
@@ -268,6 +299,16 @@ function CollectionContent({ initialProducts = [], initialSearchQuery = '' }: Co
   );
 }
 
-export function CollectionView({ initialProducts = [], initialSearchQuery = '' }: CollectionContentProps) {
-  return <CollectionContent initialProducts={initialProducts} initialSearchQuery={initialSearchQuery} />;
+export function CollectionView({ initialProducts = [] }: CollectionViewProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brown border-t-transparent" />
+        </div>
+      }
+    >
+      <CollectionContent initialProducts={initialProducts} />
+    </Suspense>
+  );
 }
