@@ -110,7 +110,7 @@ export async function sendPasswordResetOtpEmail({
       </p>
     </div>
     <div class="footer">
-      Bizzare Fragrances (by Bizzare)<br>
+      Bizzare Fragrances<br>
       Lagos, Nigeria • <a href="https://bizzarefragrances.shop" style="color: #1E1611; text-decoration: none;">bizzarefragrances.shop</a><br>
       Concierge Desk: <a href="mailto:concierge@bizzarefragrances.shop" style="color: #1E1611;">concierge@bizzarefragrances.shop</a>
     </div>
@@ -332,7 +332,7 @@ export async function sendOrderConfirmationEmail({
       </div>
     </div>
     <div class="footer">
-      Bizzare Fragrances (by Bizzare)<br>
+      Bizzare Fragrances<br>
       <a href="https://bizzarefragrances.shop" style="color: #1E1611; text-decoration: none;">bizzarefragrances.shop</a> • Concierge: <a href="mailto:concierge@bizzarefragrances.shop" style="color: #1E1611;">concierge@bizzarefragrances.shop</a>
     </div>
   </div>
@@ -462,7 +462,7 @@ export async function sendAdminOrderNotificationEmail({
       </div>
     </div>
     <div class="footer">
-      Bizzare Fragrances (by Bizzare)<br>
+      Bizzare Fragrances<br>
       <a href="https://bizzarefragrances.shop" style="color: #1E1611; text-decoration: none;">bizzarefragrances.shop</a>
     </div>
   </div>

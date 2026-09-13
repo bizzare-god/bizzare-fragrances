@@ -18,7 +18,7 @@ export function Footer() {
             </div>
           </div>
           <p className="mt-4 max-w-sm text-xs leading-6 text-cream-muted/80">
-            Artisanal haute parfumerie, pure extraits, secure Flutterwave checkout, and boutique-direct fulfilment across Nigeria.
+            Original imported perfumes, designer fragrances and niche scents from France and the UAE - delivered across Nigeria with secure Flutterwave checkout.
           </p>
           <div className="mt-5 space-y-2 text-xs">
             <a

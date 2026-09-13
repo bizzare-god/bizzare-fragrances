@@ -132,9 +132,10 @@ function buildFaqSchema() {
 export function FaqView() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All Questions');
   const [searchQuery, setSearchQuery] = useState('');
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(FAQ_DATA.map((item) => [item.id, true]))
-  );
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({
+    'dispatch-process': true,
+    'concentration-longevity': true,
+  });
 
   const toggleItem = (id: string) => {
     setOpenItems((prev) => ({
@@ -304,11 +305,15 @@ export function FaqView() {
                   </div>
                 </button>
 
-                {isOpen && (
-                  <div className="border-t border-cream-border/60 bg-cream-soft/20 px-5 pb-6 pt-4 sm:px-6 animate-in fade-in-50 duration-150">
+                <div
+                  className={`grid transition-all duration-200 ease-in-out ${
+                    isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                  }`}
+                >
+                  <div className="overflow-hidden border-t border-cream-border/60 bg-cream-soft/20 px-5 pb-6 pt-4 sm:px-6">
                     <p className="text-sm leading-7 text-brown-deep/80">{item.answer}</p>
                   </div>
-                )}
+                </div>
               </div>
             );
           })

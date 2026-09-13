@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -13,8 +13,18 @@ import {
 } from 'lucide-react';
 import { useStoreContext } from '@/components/providers/StoreProvider';
 import { PerfumeCard } from '@/components/store/PerfumeCard';
-import { Product } from '@/types';
-import { FAMILY_SLUGS, FAMILY_META } from '@/lib/seo';
+import { Product, ScentFamily } from '@/types';
+
+const families: (ScentFamily | 'ALL')[] = [
+  'ALL',
+  'Woody',
+  'Floral',
+  'Oriental',
+  'Fresh',
+  'Gourmand',
+  'Citrus',
+  'Aromatic',
+];
 
 const priceBands = [
   { label: 'All prices', min: 0, max: Number.POSITIVE_INFINITY },
@@ -23,23 +33,32 @@ const priceBands = [
   { label: '₦300k+', min: 300000, max: Number.POSITIVE_INFINITY },
 ];
 
-interface CollectionViewProps {
-  initialProducts: Product[];
-  initialQuery?: string;
+interface CollectionContentProps {
+  initialProducts?: Product[];
+  initialSearchQuery?: string;
 }
 
-export function CollectionView({ initialProducts, initialQuery = '' }: CollectionViewProps) {
+function CollectionContent({ initialProducts = [], initialSearchQuery = '' }: CollectionContentProps) {
   const router = useRouter();
-  const { addToCart } = useStoreContext();
+  const { products: contextProducts, addToCart, isLoading, dataError } = useStoreContext();
 
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [selectedFamily, setSelectedFamily] = useState<ScentFamily | 'ALL'>('ALL');
   const [selectedPrice, setSelectedPrice] = useState(priceBands[0].label);
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+
+  useEffect(() => {
+    if (!isLoading && !dataError && contextProducts.length > 0) {
+      setProducts(contextProducts);
+    }
+  }, [isLoading, dataError, contextProducts]);
 
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
   };
 
   const handleClearFilters = () => {
+    setSelectedFamily('ALL');
     setSelectedPrice(priceBands[0].label);
     setSearchQuery('');
     router.push('/shop');
@@ -49,7 +68,8 @@ export function CollectionView({ initialProducts, initialQuery = '' }: Collectio
     const band = priceBands.find((priceBand) => priceBand.label === selectedPrice) ?? priceBands[0];
     const query = searchQuery.trim().toLowerCase();
 
-    return initialProducts.filter((product) => {
+    return products.filter((product) => {
+      const matchesFamily = selectedFamily === 'ALL' || product.scent_family === selectedFamily;
       const matchesPrice = product.price >= band.min && product.price <= band.max;
       const searchable = [
         product.name,
@@ -64,12 +84,12 @@ export function CollectionView({ initialProducts, initialQuery = '' }: Collectio
         .join(' ')
         .toLowerCase();
 
-      return matchesPrice && (!query || searchable.includes(query));
+      return matchesFamily && matchesPrice && (!query || searchable.includes(query));
     });
-  }, [initialProducts, searchQuery, selectedPrice]);
+  }, [products, searchQuery, selectedFamily, selectedPrice]);
 
   const hasActiveFilters =
-    selectedPrice !== priceBands[0].label || searchQuery.trim().length > 0;
+    selectedFamily !== 'ALL' || selectedPrice !== priceBands[0].label || searchQuery.trim().length > 0;
 
   return (
     <div className="pb-16 text-brown-deep space-y-8">
@@ -78,13 +98,13 @@ export function CollectionView({ initialProducts, initialQuery = '' }: Collectio
         <div className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-brown/20 bg-cream-soft px-3.5 py-1 font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.24em] text-brown">
             <Sparkles className="h-3.5 w-3.5 text-brown-warm" />
-            Imported Perfume Catalog
+            Imported Haute Parfumerie Catalog
           </div>
           <h1 className="mt-3 font-serif text-3xl sm:text-5xl font-bold leading-tight text-brown-deep">
             Original Imported Perfumes in Nigeria - Bizzare Fragrances Collection
           </h1>
           <p className="mt-3 text-sm sm:text-base leading-relaxed text-brown-deep/75 max-w-2xl">
-            Browse the complete catalogue of 100% authentic, imported luxury and niche perfumes — original fragrances sourced from prestigious houses across France, the UAE, Italy, and the UK. Filter by price range or search by name and notes.
+            Browse the complete catalogue of 100% authentic, imported luxury and niche perfumes — original fragrances sourced from prestigious houses across France, the UAE, Italy, and the UK. Filter by olfactory family, price range, or signature notes.
           </p>
         </div>
       </div>
@@ -130,25 +150,24 @@ export function CollectionView({ initialProducts, initialQuery = '' }: Collectio
             </div>
           </div>
 
-          {/* Scent Family Category Filter Chips (Crawlable Links to Category Pages) */}
+          {/* Scent Family Category Filter Chips (Touch-scrollable on mobile/tablet) */}
           <div className="flex items-center gap-1.5 sm:gap-2 pt-2 border-t border-cream-border/60 overflow-x-auto no-scrollbar scroll-smooth -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap">
             <span className="font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-brown-deep/50 mr-0.5 shrink-0">
               Family:
             </span>
-            <Link
-              href="/shop"
-              className="shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all bg-brown text-white shadow-sm"
-            >
-              All Families
-            </Link>
-            {FAMILY_SLUGS.map((slug) => (
-              <Link
-                key={slug}
-                href={`/perfumes/${slug}`}
-                className="shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all border border-cream-border bg-cream-soft text-brown-deep/70 hover:border-brown hover:bg-white hover:text-brown-deep"
+            {families.map((family) => (
+              <button
+                key={family}
+                type="button"
+                onClick={() => setSelectedFamily(family)}
+                className={`shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all active:scale-95 ${
+                  selectedFamily === family
+                    ? 'bg-brown text-white shadow-sm'
+                    : 'border border-cream-border bg-cream-soft text-brown-deep/70 hover:border-brown hover:bg-white hover:text-brown-deep'
+                }`}
               >
-                {FAMILY_META[slug].title}
-              </Link>
+                {family === 'ALL' ? 'All Families' : family}
+              </button>
             ))}
 
             {hasActiveFilters && (
@@ -168,19 +187,37 @@ export function CollectionView({ initialProducts, initialQuery = '' }: Collectio
         <div className="flex items-center justify-between px-1">
           <p className="font-mono text-xs text-brown-deep/65">
             Displaying <strong className="text-brown-deep font-bold">{filteredProducts.length}</strong> of{' '}
-            <strong className="text-brown-deep font-bold">{initialProducts.length}</strong> fragrances
+            <strong className="text-brown-deep font-bold">{products.length}</strong> fragrances
           </p>
         </div>
 
-        {/* PRODUCTS GRID (2-Col Mobile, 3-Col iPad/Tablet, 4-Col Wide Desktop) */}
-        {filteredProducts.length === 0 ? (
+        {/* PRODUCTS MASONRY GRID (2-Col Mobile, 3-Col iPad/Tablet, 4-Col Wide Desktop) */}
+        {filteredProducts.length > 0 ? (
+          <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6 [column-fill:_balance]">
+            {filteredProducts.map((product, index) => (
+              <div key={product.id} className="break-inside-avoid mb-3 sm:mb-4 md:mb-5 lg:mb-6">
+                <PerfumeCard product={product} onAddToCart={addToCart} index={index} />
+              </div>
+            ))}
+          </div>
+        ) : isLoading ? (
+          <div className="rounded-2xl border border-cream-border bg-white px-6 py-20 text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-brown border-t-transparent" />
+            <p className="mt-3 text-sm font-serif font-bold text-brown-deep">Loading fragrance collection...</p>
+          </div>
+        ) : dataError ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-16 text-center">
+            <h3 className="font-serif text-2xl font-bold text-amber-900">Catalog Unavailable</h3>
+            <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-amber-800/80">{dataError}</p>
+          </div>
+        ) : (
           <div className="rounded-2xl border border-cream-border bg-white px-6 py-20 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-cream-border bg-cream-soft text-brown">
               <Search className="h-6 w-6" />
             </div>
             <h3 className="mt-4 font-serif text-2xl font-bold text-brown-deep">No Fragrances Found</h3>
             <p className="mx-auto mt-2 max-w-md text-xs leading-6 text-brown-deep/65">
-              No perfumes match your current filters. Try changing your search keywords or resetting price filters.
+              No perfumes match your current filters. Try changing your search keywords or resetting scent family filters.
             </p>
             <div className="mt-6">
               <button
@@ -192,14 +229,6 @@ export function CollectionView({ initialProducts, initialQuery = '' }: Collectio
                 <span>Clear All Filters</span>
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6 [column-fill:_balance]">
-            {filteredProducts.map((product, index) => (
-              <div key={product.id} className="break-inside-avoid mb-3 sm:mb-4 md:mb-5 lg:mb-6">
-                <PerfumeCard product={product} onAddToCart={addToCart} index={index} />
-              </div>
-            ))}
           </div>
         )}
       </section>
@@ -237,4 +266,8 @@ export function CollectionView({ initialProducts, initialQuery = '' }: Collectio
       </section>
     </div>
   );
+}
+
+export function CollectionView({ initialProducts = [], initialSearchQuery = '' }: CollectionContentProps) {
+  return <CollectionContent initialProducts={initialProducts} initialSearchQuery={initialSearchQuery} />;
 }

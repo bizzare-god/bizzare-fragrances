@@ -3,8 +3,8 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { productDto } from '@/lib/serializers';
 import { getStorewideSale } from '@/lib/promo';
-import { CollectionView } from '@/components/store/CollectionView';
 import { isFamilySlug } from '@/lib/seo';
+import { CollectionView } from '@/components/store/CollectionView';
 
 export const revalidate = 300;
 
@@ -32,25 +32,35 @@ export const metadata: Metadata = {
   },
 };
 
+async function getShopProducts() {
+  try {
+    const [products, storewide] = await Promise.all([
+      prisma.product.findMany({
+        where: { isActive: true },
+        include: { category: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+      getStorewideSale(),
+    ]);
+    return products.map((product) => productDto(product, storewide));
+  } catch (error) {
+    console.error('[Shop Page] Failed to load products:', error);
+    return [];
+  }
+}
+
 interface ShopPageProps {
-  searchParams: { family?: string; q?: string };
+  searchParams: { family?: string | string[]; q?: string | string[] };
 }
 
 export default async function ShopPage({ searchParams }: ShopPageProps) {
-  const familyParam = searchParams.family?.toLowerCase();
-  if (familyParam && isFamilySlug(familyParam)) {
-    redirect(`/perfumes/${familyParam}`);
+  const family = searchParams?.family;
+  if (family && !Array.isArray(family) && isFamilySlug(family.toLowerCase())) {
+    redirect(`/perfumes/${family.toLowerCase()}`);
   }
 
-  const [products, storewide] = await Promise.all([
-    prisma.product.findMany({
-      where: { isActive: true },
-      include: { category: true },
-      orderBy: { createdAt: 'desc' },
-    }),
-    getStorewideSale(),
-  ]);
-  const initialProducts = products.map((product) => productDto(product, storewide));
+  const products = await getShopProducts();
+  const initialSearchQuery = searchParams?.q && !Array.isArray(searchParams.q) ? searchParams.q : '';
 
-  return <CollectionView initialProducts={initialProducts} initialQuery={searchParams.q ?? ''} />;
+  return <CollectionView initialProducts={products} initialSearchQuery={initialSearchQuery} />;
 }

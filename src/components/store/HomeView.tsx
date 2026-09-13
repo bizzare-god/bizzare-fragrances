@@ -18,7 +18,7 @@ import { useStoreContext } from '@/components/providers/StoreProvider';
 import { PerfumeCard } from '@/components/store/PerfumeCard';
 import { OrderTracker } from '@/components/store/OrderTracker';
 import { PromoBanner } from '@/components/layout/PromoBanner';
-import { Product, ScentFamily } from '@/types';
+import { ScentFamily } from '@/types';
 import { productUrl } from '@/lib/seo';
 
 const SCENT_FAMILY_CARDS: Array<{
@@ -72,8 +72,8 @@ const SCENT_FAMILY_CARDS: Array<{
   },
 ];
 
-export function HomeView({ initialProducts = [] }: { initialProducts: Product[] }) {
-  const { orders, addToCart, currentUser, isAuthenticated } = useStoreContext();
+export function HomeView() {
+  const { products, orders, addToCart, currentUser, isAuthenticated } = useStoreContext();
 
   const buyerOrders =
     isAuthenticated && currentUser
@@ -82,27 +82,27 @@ export function HomeView({ initialProducts = [] }: { initialProducts: Product[] 
 
   // Automatically select the most recently uploaded perfume as the featured fragrance
   const heroProduct = useMemo(() => {
-    if (!initialProducts || initialProducts.length === 0) return null;
+    if (!products || products.length === 0) return null;
     return (
-      [...initialProducts].sort((a, b) => {
+      [...products].sort((a, b) => {
         const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
         const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
         return timeB - timeA;
-      })[0] ?? initialProducts[0]
+      })[0] ?? products[0]
     );
-  }, [initialProducts]);
+  }, [products]);
 
   // Spotlight newest arrivals (up to 4 perfumes)
   const spotlightProducts = useMemo(() => {
-    if (!initialProducts) return [];
-    return [...initialProducts]
+    if (!products) return [];
+    return [...products]
       .sort((a, b) => {
         const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
         const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
         return timeB - timeA;
       })
       .slice(0, 4);
-  }, [initialProducts]);
+  }, [products]);
 
   return (
     <div className="pb-16 text-brown-deep space-y-16">
@@ -133,7 +133,7 @@ export function HomeView({ initialProducts = [] }: { initialProducts: Product[] 
                 </span>
               </h1>
               <p className="max-w-xl text-sm sm:text-base leading-7 sm:leading-8 text-cream-light/85 pt-2">
-                Bizzare Fragrances — your Nigerian home for original imported perfumes. Curated and directly imported from renowned international perfume houses across France, the UAE, Italy, and beyond. Explore concentrated extraits with notes clarity, escrow checkout, and express nationwide delivery.
+                Bizzare Fragrances is your Nigerian home for original imported perfumes, designer perfumes and niche fragrance brands. Curated and directly imported from renowned perfume houses across France, the UAE, Italy, and beyond - shop authentic fragrances online with secure Flutterwave checkout and express nationwide delivery across Nigeria.
               </p>
             </div>
 
@@ -266,7 +266,7 @@ export function HomeView({ initialProducts = [] }: { initialProducts: Product[] 
               href="/shop"
               className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.16em] text-brown hover:text-brown-hover transition-colors"
             >
-              <span>Explore All Fragrances ({initialProducts.length})</span>
+              <span>Explore All Fragrances ({products.length})</span>
               <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
