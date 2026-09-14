@@ -10,7 +10,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://bizzarefragrances.s
 export const metadata: Metadata = {
   title: 'Original Imported Perfumes in Nigeria | Bizzare Fragrances',
   description:
-    'Shop 100% original imported perfumes in Nigeria from Bizzare Fragrances. Buy authentic designer, luxury, and niche fragrances directly imported with express nationwide delivery across Lagos, Abuja, and all Nigerian states.',
+    'Shop original imported perfumes in Nigeria from Bizzare Fragrances. Discover designer, niche and luxury fragrances sourced from France, Italy, the UAE and the UK with nationwide delivery.',
   alternates: {
     canonical: '/',
   },
@@ -18,8 +18,8 @@ export const metadata: Metadata = {
     type: 'website',
     title: 'Original Imported Perfumes in Nigeria | Bizzare Fragrances',
     description:
-      'Shop authentic original imported perfumes in Nigeria from Bizzare Fragrances. Designer, luxury, and niche fragrance boutique with nationwide tracked delivery.',
-    url: BASE_URL,
+      'Discover original designer, niche and luxury fragrances from Bizzare Fragrances. Nationwide delivery across Nigeria.',
+    url: 'https://bizzarefragrances.shop/',
     siteName: 'Bizzare Fragrances',
     images: [
       {
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Original Imported Perfumes in Nigeria | Bizzare Fragrances',
     description:
-      'Shop authentic original imported perfumes in Nigeria from Bizzare Fragrances. Designer, luxury and niche fragrances with nationwide delivery.',
+      'Shop original imported perfumes in Nigeria from Bizzare Fragrances. Discover designer, niche and luxury fragrances sourced from France, Italy, the UAE and the UK with nationwide delivery.',
     images: ['/og-logo.png'],
   },
 };
@@ -42,11 +42,29 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const products = await getActiveProductsServer();
 
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Bizzare Fragrances',
+    url: 'https://bizzarefragrances.shop',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://bizzarefragrances.shop/shop?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd(products.slice(0, 8), BASE_URL)) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(itemListJsonLd(products.slice(0, 8), BASE_URL)),
+        }}
       />
       <HomeView initialProducts={products} />
     </>
